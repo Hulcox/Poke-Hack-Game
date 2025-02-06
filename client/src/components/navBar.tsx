@@ -14,8 +14,6 @@ import { usePathname } from "next/navigation";
 const NavBar = () => {
   const pathname = usePathname();
 
-  console.log(pathname);
-
   return (
     <div className="flex flex-col items-center px-2 py-4 gap-8 bg-base-100 h-full">
       <div className="text-center">
@@ -60,10 +58,15 @@ const NavBar = () => {
         </li>
         <div className="divider"></div>
         <li>
-          <a>
+          <Link
+            href={"/pokedex"}
+            className={`${
+              pathname.match("/pokedex") && "active !bg-primary !text-white"
+            }`}
+          >
             <BookOpenText className="mr-2" />
             Pokédex
-          </a>
+          </Link>
         </li>
         <div className="divider"></div>
         <li>

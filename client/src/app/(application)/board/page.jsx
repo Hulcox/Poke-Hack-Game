@@ -9,11 +9,10 @@ const getPokemon = async () => {
 
 const BoardGame = () => {
   const query = useQuery({ queryKey: ["test"], queryFn: getPokemon });
-  console.log(query.data);
 
   return (
     query.data && (
-      <div className="flex flex-row w-dvw h-dvh bg-gradient-to-t from-black to-white">
+      <div className="flex flex-row w-full h-full bg-gradient-to-t from-black to-white">
         <div className="flex-1 h-full flex flex-col justify-between ">
           <div className="h-3/4 flex p-8">
             <div className="relative h-full w-1/2  flex flex-col justify-end items-center">
