@@ -7,7 +7,7 @@ import type { CreateUser, SignInUser } from "../types/user.types.js";
 import { hashPassword } from "../utils/hashPassword.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "";
-const SESSION_EXPIRY = 3600;
+const SESSION_EXPIRY = 3600 * 24;
 
 const prisma = new PrismaClient();
 export class AuthController {
@@ -33,8 +33,8 @@ export class AuthController {
       );
 
       setCookie(c, "auth_token", token, {
-        httpOnly: true,
-        secure: true,
+        httpOnly: false,
+        secure: false,
         sameSite: "Lax",
         path: "/",
         maxAge: SESSION_EXPIRY,

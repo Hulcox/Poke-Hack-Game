@@ -7,13 +7,13 @@ import { useState } from "react";
 
 const getPokedex = async () => {
   const response = await fetch(
-    "https://pokeapi.co/api/v2/pokemon?limit=151&offset=0"
+    `${process.env.NEXT_PUBLIC_POKEAPI_URL}/pokemon?limit=151&offset=0`
   );
   return await response.json();
 };
 
 const getTypes = async () => {
-  const response = await fetch("https://pokeapi.co/api/v2/type");
+  const response = await fetch(`${process.env.NEXT_PUBLIC_POKEAPI_URL}/type`);
   return await response.json();
 };
 
