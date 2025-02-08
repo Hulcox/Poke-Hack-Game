@@ -1,6 +1,6 @@
 "use client";
 
-import { TYPE_COLORS, TYPE_WEAKNESSES } from "@/app/utils/pokemonTypes";
+import { TYPE_COLORS, TYPE_WEAKNESSES } from "@/utils/pokemonTypes";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 
@@ -19,6 +19,8 @@ const PokeCard = ({
   typesFilter: string[];
 }) => {
   const query = useQuery({ queryKey: [url], queryFn: () => getPokemon(url) });
+
+  console.log(TYPE_COLORS);
 
   if (query.data) {
     const pokemon = query.data;
@@ -83,9 +85,11 @@ const PokeCard = ({
               <div className="flex flex-col gap-2">
                 {types.map((type: { type: { name: string } }, key: number) => (
                   <div
-                    className={`badge badge-sm p-2 text-white ${
-                      TYPE_COLORS[getWeaknesses(type.type.name)]
-                    }`}
+                    className={`badge badge-sm p-2 text-white`}
+                    style={{
+                      backgroundColor:
+                        TYPE_COLORS[getWeaknesses(type.type.name)],
+                    }}
                     key={key}
                   >
                     <div>{getWeaknesses(type.type.name)}</div>
@@ -100,9 +104,10 @@ const PokeCard = ({
           <div className="flex gap-2 pt-2">
             {types.map((type: { type: { name: string } }, key: number) => (
               <div
-                className={`badge badge-sm p-2 text-white ${
-                  TYPE_COLORS[type.type.name]
-                }`}
+                className={`badge badge-sm p-2 text-white`}
+                style={{
+                  backgroundColor: TYPE_COLORS[type.type.name],
+                }}
                 key={key}
               >
                 {type.type.name}

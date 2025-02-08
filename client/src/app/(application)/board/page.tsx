@@ -56,8 +56,7 @@ const BoardGame = () => {
           </div>
           <div className="w-full h-1/4 bg-base-300 rounded-t-lg border-neutral border-[4px] p-8 flex">
             <div className="w-3/4 p-8">
-              {" "}
-              C'est au tour de Charizard de Romain d'attaquer !!
+              {"  C'est au tour de Charizard de Romain d'attaquer !!"}
             </div>
             <div className="divider divider-horizontal"></div>
             <div className="1/4 flex flex-col justify-around">

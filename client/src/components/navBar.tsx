@@ -9,10 +9,18 @@ import {
   UserCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const NavBar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const logout = async () => {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+      credentials: "include",
+    });
+    router.push("/auth/login");
+  };
 
   return (
     <div className="flex flex-col items-center px-2 py-4 gap-8 bg-base-100 h-full">
@@ -90,7 +98,9 @@ const NavBar = () => {
         </li>
         <div className="divider"></div>
       </ul>
-      <button className="btn btn-outline btn-error btn-sm">Log Out</button>
+      <button className="btn btn-outline btn-error btn-sm" onClick={logout}>
+        Log Out
+      </button>
     </div>
   );
 };
