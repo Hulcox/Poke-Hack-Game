@@ -16,5 +16,5 @@ export const getSession = async (sessionId: string) => {
 };
 
 export const deleteSession = async (sessionId: string) => {
-  await redis.del(`session:${sessionId}`);
+  await redis.unlink(`session:${sessionId}`);
 };
