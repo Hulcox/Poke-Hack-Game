@@ -3,7 +3,7 @@
 import PokemonBullet from "@/components/pokemonBullet";
 import { Team } from "@/lib/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Pencil, Trash } from "lucide-react";
+import { Cat, Pencil, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const getTeam = async () => {
@@ -51,7 +51,9 @@ const TeamPage = () => {
     <div className="w-full h-dvh p-8">
       <div className="bg-base-100 rounded-box ring-4 ring-neutral p-4 h-full">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl">My Teams</h2>
+          <h2 className="text-xl flex items-center gap-4">
+            <Cat /> My Teams
+          </h2>
           <button className="btn btn-sm btn-primary" onClick={goToCreatePage}>
             Create a new team
           </button>
