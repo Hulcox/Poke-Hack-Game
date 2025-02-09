@@ -1,0 +1,15 @@
+-- CreateTable
+CREATE TABLE "Team" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "pokemonIds" TEXT[],
+    "totalHp" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Team" ADD CONSTRAINT "Team_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

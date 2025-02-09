@@ -24,10 +24,14 @@ export class AuthController {
       }
 
       const sessionId = crypto.randomUUID();
-      await saveSession(sessionId, { email: email }, SESSION_EXPIRY);
+      await saveSession(
+        sessionId,
+        { userId: user.id, email: email },
+        SESSION_EXPIRY
+      );
 
       const token = await sign(
-        { sessionId, exp: Math.floor(Date.now() / 1000) + 60 * 60 },
+        { sessionId, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 },
         SECRET_KEY,
         "HS256"
       );
