@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
+import BtnForm from "./btnForm";
 import InputForm from "./inputForm";
 
 const schema = z.object({
@@ -84,15 +85,7 @@ const LoginForm = () => {
         />
       </div>
       <div>
-        <button type="submit" className="btn btn-primary">
-          {mutation.isPending && (
-            <span className="loading loading-spinner"></span>
-          )}
-          Submit
-        </button>
-        {mutation.error && (
-          <p className="text-error !text-xs mt-4">{mutation.error.message}</p>
-        )}
+        <BtnForm btnLabel={"Sign In"} mutation={mutation} />
       </div>
     </form>
   );

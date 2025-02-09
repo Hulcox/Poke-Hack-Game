@@ -111,7 +111,10 @@ const UpdateTeamPage = () => {
       </div>
       <div className="w-full bg-base-100 flex-1 rounded-box ring-4 ring-neutral p-8">
         <div className="flex justify-between mb-8">
-          <SearchFilter setSearchState={setSearchState} />
+          <SearchFilter
+            setSearchState={setSearchState}
+            placeholder="Search Pokemon"
+          />
           <TypesFilter typesState={typesState} setTypesState={setTypesState} />
         </div>
         <div className="flex flex-row flex-wrap justify-center gap-8">

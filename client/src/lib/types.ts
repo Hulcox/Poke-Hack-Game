@@ -47,3 +47,24 @@ export interface PokemonData {
   stats: { base_stat: number }[];
   types: string[];
 }
+
+export interface UserData {
+  id: number;
+  email: string;
+  username: string;
+  code: number;
+}
+
+export interface FriendData {
+  id: number;
+  userId: number;
+  friendId: number;
+  status: FriendStatus;
+  friend: UserData;
+  iDoRequest: boolean;
+}
+
+export enum FriendStatus {
+  ACCEPTED = "ACCEPTED",
+  PENDING = "PENDING",
+}

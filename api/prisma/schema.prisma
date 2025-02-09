@@ -13,6 +13,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+}
+
 model User {
   id  Int @id @default(autoincrement())
   email String @unique
@@ -24,6 +29,8 @@ model User {
   updatedAt DateTime @updatedAt @default(now())
 
   teams Team[]
+  friends Friend[] @relation("UserFriends")
+  friendOf  Friend[] @relation("UserFriendsOf")
 
   @@unique([username, code])
 }
@@ -37,4 +44,18 @@ model Team {
   totalHp Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
+}
+
+model Friend {
+  id  Int @id @default(autoincrement())
+  userId  Int
+  friendId  Int
+  status  FriendStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  user User @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("UserFriendsOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
 }
