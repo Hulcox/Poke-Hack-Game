@@ -4,6 +4,7 @@ import SearchFilter from "@/components/filter/searchFilter";
 import TypesFilter from "@/components/filter/typesFilter";
 import PokeCard from "@/components/pokeCard";
 import { useQuery } from "@tanstack/react-query";
+import { BookOpenText } from "lucide-react";
 import { useState } from "react";
 
 const getPokedex = async () => {
@@ -22,8 +23,14 @@ const Pokedex = () => {
   return (
     <div className="text-neutral w-full">
       <div className="bg-base-100 text-white mx-4 my-6 p-4 flex flex-row items-center justify-between gap-4 rounded-box ring-2 ring-primary">
-        <h1 className="text-lg">Pokedex</h1>
-        <SearchFilter setSearchState={setSearchState} />
+        <h1 className="text-lg flex items-center gap-4">
+          <BookOpenText />
+          Pokedex
+        </h1>
+        <SearchFilter
+          setSearchState={setSearchState}
+          placeholder="Search Pokemon"
+        />
         <TypesFilter typesState={typesState} setTypesState={setTypesState} />
       </div>
       {data && (

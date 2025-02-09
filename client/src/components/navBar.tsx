@@ -78,10 +78,15 @@ const NavBar = () => {
         </li>
         <div className="divider"></div>
         <li>
-          <a>
+          <Link
+            href={"/friends"}
+            className={`${
+              pathname.match("/friends") && "active !bg-primary !text-white"
+            }`}
+          >
             <SmilePlus className="mr-2" />
             Friends
-          </a>
+          </Link>
         </li>
         <li>
           <a>

@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import InputForm from "./inputForm";
+import BtnForm from "./btnForm";
 
 const pokemonSchema = z.object({
   id: z.number(),
@@ -161,15 +162,7 @@ const TeamForm = ({
         </p>
       )}
       <div className="w-full text-end">
-        <button type="submit" className="btn btn-sm btn-primary">
-          {mutation.isPending && (
-            <span className="loading loading-spinner"></span>
-          )}
-          {btnLabel}
-        </button>
-        {mutation.error && (
-          <p className="text-error !text-xs mt-4">{mutation.error.message}</p>
-        )}
+        <BtnForm btnLabel={btnLabel} mutation={mutation} />
       </div>
     </form>
   );

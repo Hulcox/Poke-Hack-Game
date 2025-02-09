@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import authRouter from "./routes/auth.route.js";
+import friendRouter from "./routes/friends.route.js";
 import teamRouter from "./routes/team.route.js";
 import userRouter from "./routes/user.route.js";
 
@@ -18,8 +19,9 @@ app.use(
 );
 
 app.route("/auth", authRouter);
-app.route("/users", userRouter);
+app.route("/user", userRouter);
 app.route("/team", teamRouter);
+app.route("/friend", friendRouter);
 
 app.onError((err, c) => {
   console.log("Erreur", err);
