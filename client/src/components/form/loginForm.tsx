@@ -48,8 +48,7 @@ const LoginForm = () => {
 
   const mutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
-      console.log("Login successful:", data);
+    onSuccess: () => {
       router.push("/home");
     },
   });
@@ -66,6 +65,7 @@ const LoginForm = () => {
       <div className="space-y-8">
         <InputForm
           name="email"
+          label="email"
           type="email"
           placeholder="Email"
           register={register}
@@ -74,6 +74,7 @@ const LoginForm = () => {
         />
         <InputForm
           name="password"
+          label="password"
           type="password"
           placeholder="Password"
           register={register}
