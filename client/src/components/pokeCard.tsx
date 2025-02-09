@@ -1,8 +1,11 @@
 "use client";
 
+import { PokeCardProps } from "@/lib/types";
 import { TYPE_COLORS, TYPE_WEAKNESSES } from "@/utils/pokemonTypes";
 import { useQuery } from "@tanstack/react-query";
+import clsx from "clsx";
 import Image from "next/image";
+import { twMerge } from "tailwind-merge";
 
 const getPokemon = async (url: string) => {
   const response = await fetch(url);
@@ -13,21 +16,50 @@ const PokeCard = ({
   url,
   searchState,
   typesFilter,
-}: {
-  url: string;
-  searchState: string;
-  typesFilter: string[];
-}) => {
-  const query = useQuery({ queryKey: [url], queryFn: () => getPokemon(url) });
+  className,
+  callback,
+}: PokeCardProps) => {
+  const {
+    data: pokemon,
+    isError,
+    isLoading,
+    isSuccess,
+  } = useQuery({ queryKey: [url], queryFn: () => getPokemon(url), retry: 0 });
 
-  console.log(TYPE_COLORS);
+  if (isLoading) {
+    return (
+      <div
+        className={twMerge(
+          clsx(
+            "w-80 h-72 bg-neutral text-white rounded-box p-4 ring-4 ring-base-100 flex items-center justify-center opacity-75",
+            className
+          )
+        )}
+      >
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
 
-  if (query.data) {
-    const pokemon = query.data;
+  if (isError) {
+    return (
+      <div
+        className={twMerge(
+          clsx(
+            "w-80 h-72 bg-neutral text-white rounded-box p-4 ring-4 ring-base-100 flex items-center justify-center",
+            className
+          )
+        )}
+      >
+        <h2>{"Doesn't exist"}</h2>
+      </div>
+    );
+  }
 
+  if (isSuccess) {
     const hp = pokemon.stats[0].base_stat;
     const attack = pokemon.stats[1].base_stat;
-
+    const img = pokemon.sprites.front_default;
     const types = pokemon.types;
 
     const getWeaknesses = (name: string) => {
@@ -47,12 +79,23 @@ const PokeCard = ({
 
     if (
       typesFilter.length > 0 &&
-      !typesFilter.some((item) => typeList.includes(item))
+      !typesFilter.every((item) => typeList.includes(item))
     ) {
       return null;
     }
+
     return (
-      <div className="w-80 bg-neutral text-white rounded-box p-4 ring-4 ring-base-100 transition-all hover:scale-105">
+      <div
+        className={twMerge(
+          clsx(
+            "w-80 bg-neutral text-white rounded-box p-4 ring-4 ring-base-100 transition-all hover:scale-105",
+            className
+          )
+        )}
+        onClick={() =>
+          callback?.({ id: pokemon.id, name: pokemon.name, img, hp, attack })
+        }
+      >
         <div className="flex items-baseline gap-2">
           <h3 className="!text-sm">
             #<span className="text-primary">{pokemon.id}</span>
@@ -61,9 +104,9 @@ const PokeCard = ({
         </div>
         <div className="flex py-4 h-[150px] justify-between">
           <div>
-            {pokemon.sprites.front_default ? (
+            {img ? (
               <Image
-                src={pokemon.sprites.front_default}
+                src={img}
                 alt={`${pokemon.name}`}
                 width={100}
                 height={100}
@@ -117,7 +160,7 @@ const PokeCard = ({
         </div>
       </div>
     );
-  } else return <div>loading</div>;
+  }
 };
 
 export default PokeCard;

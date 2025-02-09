@@ -49,8 +49,7 @@ const RegisterForm = () => {
 
   const mutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
-      console.log("Register successful:", data);
+    onSuccess: () => {
       router.push("/auth/login");
     },
   });

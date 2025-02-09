@@ -1,25 +1,15 @@
 "use client";
+import { InputFormProps } from "@/lib/types";
 import clsx from "clsx";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { FieldError, Path, UseFormRegister } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
-
-interface InputFormProps<T extends object> {
-  type: string;
-  placeholder: string;
-  name: Path<T>;
-  register: UseFormRegister<T>;
-  isRequired: boolean;
-  isPassword?: boolean;
-  error?: FieldError;
-  className?: string;
-}
 
 const InputForm = <T extends object>({
   type,
   placeholder,
   name,
+  label,
   register,
   isRequired,
   error,
@@ -34,10 +24,11 @@ const InputForm = <T extends object>({
 
   return (
     <div>
-      <div className="label">
-        <span className="label-text !text-white capitalize">{name}</span>
-      </div>
-
+      {label && (
+        <div className="label">
+          <span className="label-text !text-white capitalize">{label}</span>
+        </div>
+      )}
       <label
         className={twMerge(
           clsx(
