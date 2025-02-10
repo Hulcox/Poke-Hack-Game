@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
+import { STATUS_CODE_NOT_FOUND } from "../utils/constants.js";
 
 const prisma = new PrismaClient();
 
@@ -19,7 +20,7 @@ export class UserController {
     });
 
     if (!user) {
-      return c.json({ error: "No user found" }, 404);
+      return c.json({ error: "No user found" }, STATUS_CODE_NOT_FOUND);
     }
 
     return c.json(user);
@@ -27,10 +28,10 @@ export class UserController {
 
   static getUserByName = async (c: Context) => {
     const username = c.req.query("username");
-    const userId = 12;
+    const { userId } = c.get("user");
 
     if (!username) {
-      return c.json({ error: "No username given" }, 404);
+      return c.json({ error: "No username given" }, STATUS_CODE_NOT_FOUND);
     }
 
     const user = await prisma.user.findMany({
@@ -58,7 +59,7 @@ export class UserController {
     });
 
     if (!user) {
-      return c.json({ error: "No user found" }, 404);
+      return c.json({ error: "No user found" }, STATUS_CODE_NOT_FOUND);
     }
 
     return c.json(user);
