@@ -1,11 +1,12 @@
 "use client";
 
 import { PokeCardProps } from "@/lib/types";
-import { TYPE_COLORS, TYPE_WEAKNESSES } from "@/utils/pokemonTypes";
+import { TYPE_WEAKNESSES } from "@/utils/pokemonTypes";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import Image from "next/image";
 import { twMerge } from "tailwind-merge";
+import TypeBadge from "./typeBadge";
 
 const getPokemon = async (url: string) => {
   const response = await fetch(url);
@@ -127,16 +128,7 @@ const PokeCard = ({
               <h4>Weakness:</h4>
               <div className="flex flex-col gap-2">
                 {types.map((type: { type: { name: string } }, key: number) => (
-                  <div
-                    className={`badge badge-sm p-2 text-white`}
-                    style={{
-                      backgroundColor:
-                        TYPE_COLORS[getWeaknesses(type.type.name)],
-                    }}
-                    key={key}
-                  >
-                    <div>{getWeaknesses(type.type.name)}</div>
-                  </div>
+                  <TypeBadge key={key} type={getWeaknesses(type.type.name)} />
                 ))}
               </div>
             </div>
@@ -146,15 +138,7 @@ const PokeCard = ({
           <h4>Types:</h4>
           <div className="flex gap-2 pt-2">
             {types.map((type: { type: { name: string } }, key: number) => (
-              <div
-                className={`badge badge-sm p-2 text-white`}
-                style={{
-                  backgroundColor: TYPE_COLORS[type.type.name],
-                }}
-                key={key}
-              >
-                {type.type.name}
-              </div>
+              <TypeBadge key={key} type={type.type.name} />
             ))}
           </div>
         </div>

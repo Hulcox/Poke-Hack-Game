@@ -6,13 +6,14 @@ import authRouter from "./routes/auth.route.js";
 import friendRouter from "./routes/friends.route.js";
 import teamRouter from "./routes/team.route.js";
 import userRouter from "./routes/user.route.js";
+import weatherRoute from "./routes/weather.route.js";
 
 const app = new Hono();
 
 app.use(logger());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_API || "http://localhost:3000",
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
@@ -22,6 +23,7 @@ app.route("/auth", authRouter);
 app.route("/user", userRouter);
 app.route("/team", teamRouter);
 app.route("/friend", friendRouter);
+app.route("/weather", weatherRoute);
 
 app.onError((err, c) => {
   console.log("Erreur", err);

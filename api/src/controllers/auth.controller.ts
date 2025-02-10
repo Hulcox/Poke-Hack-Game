@@ -7,7 +7,7 @@ import type { CreateUser, SignInUser } from "../types/user.types.js";
 import { hashPassword } from "../utils/hashPassword.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "";
-const SESSION_EXPIRY = 3600 * 24;
+const SESSION_EXPIRY = 3600 * 24; //24h
 
 const prisma = new PrismaClient();
 export class AuthController {
