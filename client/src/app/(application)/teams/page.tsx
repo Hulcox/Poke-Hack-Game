@@ -59,8 +59,10 @@ const TeamPage = () => {
           </button>
         </div>
         <div className="mt-12">
+          {isSuccess && data.length == 0 && <h2>{"You don't have team"}</h2>}
           {isSuccess &&
-            data.map((team: Team, key: number) => (
+            data.length > 0 &&
+            data?.map((team: Team, key: number) => (
               <div key={key}>
                 <div className="divider"></div>
                 <div className="flex items-center justify-between">

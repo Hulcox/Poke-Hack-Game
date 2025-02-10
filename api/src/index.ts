@@ -13,7 +13,7 @@ const app = new Hono();
 app.use(logger());
 app.use(
   cors({
-    origin: process.env.CLIENT_API || "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
