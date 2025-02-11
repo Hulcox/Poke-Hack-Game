@@ -12,18 +12,11 @@ export interface InputFormProps<T extends object> {
   className?: string;
 }
 
-export interface PokeCardProps {
-  url: string;
-  searchState: string;
-  typesFilter: string[];
-  className?: string;
-  callback?: (data: PokemonFormSchema) => void;
-}
-
 export interface PokemonFormSchema {
   id: number;
   name: string;
   img: string;
+  img_back: string;
   hp: number;
   attack: number;
 }
@@ -77,6 +70,7 @@ export interface PokeCardProps {
     id: number;
     name: string;
     img: string;
+    img_back: string;
     hp: number;
     attack: number;
   }) => void;
