@@ -1,14 +1,14 @@
 "use client";
+import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
-import InputForm from "./inputForm";
+import PokemonPreview from "../pokemon/pokemonPreview";
 import BtnForm from "./btnForm";
+import InputForm from "./inputForm";
 
 const pokemonSchema = z.object({
   id: z.number(),
@@ -32,8 +32,8 @@ type Pokemon = z.infer<typeof pokemonSchema>;
 const TeamForm = ({
   pokemonListState,
   setPokemonListState,
-  btnLabel,
   nameField,
+  btnLabel,
   idTeam,
   isUpdate = false,
 }: {
@@ -48,38 +48,22 @@ const TeamForm = ({
     register,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors },
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
-    defaultValues: { team: [] },
+    defaultValues: { team: isUpdate ? pokemonListState : [], name: nameField },
   });
 
   const router = useRouter();
 
-  const requestTeam = async (data: Inputs) => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/team${isUpdate ? "/" + idTeam : ""}`,
-      {
-        method: isUpdate ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        credentials: "include",
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error);
-    }
-    return result;
-  };
-
   const mutation = useMutation({
-    mutationFn: requestTeam,
+    mutationFn: (data: Inputs) =>
+      api(
+        `${process.env.NEXT_PUBLIC_API_URL}/team${
+          isUpdate ? "/" + idTeam : ""
+        }`,
+        { method: isUpdate ? "PUT" : "POST", data: data, credential: true }
+      ),
     onSuccess: () => {
       router.push("/teams");
     },
@@ -90,18 +74,8 @@ const TeamForm = ({
   };
 
   useEffect(() => {
-    if (nameField) {
-      setValue("name", nameField);
-    }
-  }, [nameField, setValue]);
-
-  useEffect(() => {
     reset({ team: pokemonListState });
   }, [pokemonListState, reset]);
-
-  const removePokemon = (id: number) => {
-    setPokemonListState((prev) => prev.filter((pokemon) => pokemon.id !== id));
-  };
 
   return (
     <form
@@ -120,37 +94,11 @@ const TeamForm = ({
       <div className="flex flex-row flex-wrap justify-center items-center gap-8 min-h-44">
         {pokemonListState.length > 0 ? (
           pokemonListState.map((pokemon: Pokemon, key: number) => (
-            <div
+            <PokemonPreview
               key={key}
-              className="w-44 h-44 ring-2 ring-primary bg-neutral rounded-box p-8 flex flex-col items-center justify-center indicator"
-            >
-              <span
-                className="indicator-item rounded-full bg-primary w-6 h-6 text-white flex item-center justify-center cursor-pointer"
-                onClick={() => removePokemon(pokemon.id)}
-              >
-                <X />
-              </span>
-              <div className="flex items-baseline gap-2">
-                <h3 className="!text-sm">
-                  #<span className="text-primary">{pokemon.id}</span>
-                </h3>
-                <h3 className="!text-xs capitalize">{pokemon.name}</h3>
-              </div>
-              <Image
-                src={pokemon.img}
-                alt="pokemon teams img"
-                width={150}
-                height={150}
-              />
-              <div className="flex items-baseline gap-4">
-                <h3 className="!text-xs flex">
-                  Hp: <span className="text-info">{pokemon.hp}</span>
-                </h3>
-                <h3 className="!text-xs flex">
-                  Atk: <span className="text-error">{pokemon.attack}</span>
-                </h3>
-              </div>
-            </div>
+              pokemon={pokemon}
+              setPokemonList={setPokemonListState}
+            />
           ))
         ) : (
           <h2>Please select some Pokemon</h2>

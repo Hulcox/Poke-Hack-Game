@@ -1,24 +1,18 @@
 "use client";
 
+import ErrorText from "@/components/error";
 import SearchFilter from "@/components/filter/searchFilter";
 import TypesFilter from "@/components/filter/typesFilter";
-import PokeCard from "@/components/pokeCard";
-import { useQuery } from "@tanstack/react-query";
+import PokeCard from "@/components/pokemon/pokemonCard";
+import { usePokedex } from "@/hooks/usePokemon";
 import { BookOpenText } from "lucide-react";
 import { useState } from "react";
-
-const getPokedex = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_POKEAPI_URL}/pokemon?limit=151&offset=0`
-  );
-  return await response.json();
-};
 
 const Pokedex = () => {
   const [searchState, setSearchState] = useState<string>("");
   const [typesState, setTypesState] = useState<string[]>([]);
 
-  const { data } = useQuery({ queryKey: ["pokedex"], queryFn: getPokedex });
+  const { pokedex, isError } = usePokedex();
 
   return (
     <div className="text-neutral w-full">
@@ -33,9 +27,10 @@ const Pokedex = () => {
         />
         <TypesFilter typesState={typesState} setTypesState={setTypesState} />
       </div>
-      {data && (
+      <ErrorText title="No Pokemon Found" active={isError} />
+      {pokedex && (
         <div className="flex flex-row flex-wrap gap-8 justify-center">
-          {data.results.map(({ url }: { url: string }, key: number) => (
+          {pokedex.results.map(({ url }: { url: string }, key: number) => (
             <PokeCard
               key={key}
               url={url}
