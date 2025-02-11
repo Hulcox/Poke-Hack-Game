@@ -5,6 +5,10 @@ import { sign } from "hono/jwt";
 import { deleteSession, saveSession } from "../services/redis.service.js";
 import type { CreateUser, SignInUser } from "../types/user.types.js";
 import { hashPassword } from "../utils/hashPassword.js";
+import {
+  ERROR_INTERNAL_SERVER,
+  STATUS_CODE_INTERNAL_SERVER_ERROR,
+} from "../utils/constants.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "";
 const SESSION_EXPIRY = 3600 * 24; //24h
@@ -46,7 +50,10 @@ export class AuthController {
 
       return c.json({ message: "Logged in ok", token });
     } catch (error) {
-      return c.json({ error: "A problem as occured" + error }, 400);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -83,7 +90,10 @@ export class AuthController {
 
       return c.json(user);
     } catch (error) {
-      return c.json({ error: "A problem as occured" + error }, 400);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 

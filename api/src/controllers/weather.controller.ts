@@ -13,16 +13,19 @@ const CACHE_EXPIRY = 60 * 10; //10min
 
 export class WeatherController {
   static getWeather = async (c: Context) => {
-    const lat = c.req.query("lat");
-    const lon = c.req.query("lon");
-
-    if (!lat || !lon) {
-      return c.json({ error: "Lat and lon required" }, STATUS_CODE_BAD_REQUEST);
-    }
-
-    console.log(lat, lon);
-
     try {
+      const lat = c.req.query("lat");
+      const lon = c.req.query("lon");
+
+      if (!lat || !lon) {
+        return c.json(
+          { error: "Lat and lon required" },
+          STATUS_CODE_BAD_REQUEST
+        );
+      }
+
+      console.log(lat, lon);
+
       const cacheWeather = await getWeather(lat, lon);
       if (cacheWeather) {
         console.log("Météo chargée depuis Redis");

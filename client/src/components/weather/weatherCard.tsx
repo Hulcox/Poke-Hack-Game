@@ -1,153 +1,54 @@
 "use client";
 
-import { api } from "@/utils/api";
-import {
-  typeStrengthByWeather,
-  typeWeaknessesByWeather,
-} from "@/utils/pokemonTypes";
-import { useMutation } from "@tanstack/react-query";
-import { ThermometerSun, Wind } from "lucide-react";
-import { DateTime } from "luxon";
-import { useEffect, useState } from "react";
-import TypeBadge from "../type/typeBadge";
+import { useGeolocation } from "@/hooks/useGeolocalisation";
+import { useWeather } from "@/hooks/useWeather";
+import ErrorText from "../error";
+import Loading from "../loading";
 import WeatherBadge from "./weatherBadge";
-
-const truncateToFourDecimals = (num: number) =>
-  Math.trunc(num * 10_000) / 10_000;
+import WeatherDayNight from "./weatherDayNight";
+import WeatherInfluence from "./weatherInfluence";
+import WeatherLoc from "./weatherLoc";
+import WeatherName from "./weatherName";
+import WeatherTemp from "./weatherTemp";
 
 const WeatherCard = () => {
-  const [errorGeoloc, setErrorGeoloc] = useState(false);
-  const [loadingGeoloc, setLoadingGeoloc] = useState(false);
-
-  const urlApi = (lat: number, lon: number) =>
-    `${process.env.NEXT_PUBLIC_API_URL}/weather?lat=${truncateToFourDecimals(
-      lat
-    )}&lon=${truncateToFourDecimals(lon)}`;
-
-  const weather = useMutation({
-    mutationFn: ({ lat, lon }: { lat: number; lon: number }) =>
-      api(urlApi(lat, lon), { credential: true }),
-    onSuccess: (data) => {
-      console.log(data);
-    },
-  });
-
-  useEffect(() => {
-    getLocalisation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const getLocalisation = () => {
-    setLoadingGeoloc(true);
-    setErrorGeoloc(false);
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLoadingGeoloc(false);
-          weather.mutate({ lat: latitude, lon: longitude });
-        },
-        (err) => {
-          console.log("Error localisation not allowed", err);
-          setErrorGeoloc(true);
-          setErrorGeoloc(false);
-        }
-      );
-    }
-  };
-
+  const { location, errorGeoloc, loadingGeoloc, getLocalisation } =
+    useGeolocation();
+  const { weather, isLoading, isError } = useWeather(location);
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h1>Weather</h1>
-      {weather.isPending && (
-        <span className="loading-spinner loading text-primary"></span>
-      )}
-      {weather.isSuccess && weather.data && (
+      <Loading
+        size="lg"
+        type="spinner"
+        className="text-primary text-center"
+        active={isLoading}
+      />
+
+      {weather && (
         <div className="flex-1 flex flex-col justify-center gap-4">
-          <WeatherBadge
-            icon={weather.data.weather[0].icon}
-            alt={weather.data.weather[0].description}
-            className="self-center"
-          />
-          <h3 className="text-center py-4">
-            {weather.data.weather[0].main}{" "}
-            <span className="text-sm">
-              ({weather.data.weather[0].description})
-            </span>
-          </h3>
-          <h3>
-            <span className="text-primary">Loc:</span> {weather.data.name},{" "}
-            {weather.data.sys.country}
-          </h3>
-          <div className="flex gap-6">
-            <p>
-              <span className="text-primary">Sunrise:</span>{" "}
-              {DateTime.fromSeconds(weather.data.sys.sunrise).toFormat("HH:mm")}
-            </p>
-            <p>
-              <span className="text-primary">Sunset:</span>{" "}
-              {DateTime.fromSeconds(weather.data.sys.sunset).toFormat("HH:mm")}
-            </p>
-          </div>
-          <p className="flex gap-4">
-            <ThermometerSun />
-            {weather.data.main.temp}°C
-          </p>
-          <p className="flex gap-4">
-            <Wind />
-            {weather.data.wind.speed} km/h
-          </p>
-          <div className="flex justify-between mt-4">
-            <div>
-              <p className="text-xs text-success">Strengthened type</p>
-              <div className="pt-4 flex flex-wrap gap-4">
-                {typeStrengthByWeather(
-                  weather.data.weather[0].main,
-                  weather.data.main.temp,
-                  weather.data.wind.speed,
-                  weather.data.sys.sunset,
-                  weather.data.sys.sunrise
-                ).map((type: string, key: number) => (
-                  <TypeBadge key={key} type={type} />
-                ))}
-              </div>
-            </div>
-            <div className="divider divider-horizontal"></div>
-            <div>
-              <p className="text-xs text-error">Weakened type</p>
-              <div className="pt-4 flex flex-wrap gap-4">
-                {typeWeaknessesByWeather(
-                  weather.data.weather[0].main,
-                  weather.data.main.temp,
-                  weather.data.wind.speed,
-                  weather.data.sys.sunset,
-                  weather.data.sys.sunrise
-                ).map((type: string, key: number) => (
-                  <TypeBadge key={key} type={type} />
-                ))}
-              </div>
-            </div>
-          </div>
+          <WeatherBadge weather={weather} className="self-center" />
+          <WeatherName weather={weather} />
+          <WeatherLoc weather={weather} />
+          <WeatherDayNight weather={weather} />
+          <WeatherTemp weather={weather} />
+
+          <WeatherInfluence weather={weather} />
         </div>
       )}
-      {errorGeoloc ||
-        (weather.isError && (
-          <div className="text-center space-y-4">
-            <h3 className="text-error text-sm">
-              Imposible to get your localisation
-            </h3>
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={getLocalisation}
-            >
-              {loadingGeoloc && (
-                <span className="loading loading-spinner"></span>
-              )}
-              Reload
-            </button>
-          </div>
-        ))}
+
+      <ErrorText
+        title="Impossible to get your localisation"
+        active={errorGeoloc || isError}
+        className="text-center text-error"
+      />
+      {(errorGeoloc || isError) && (
+        <button className="btn btn-sm btn-primary" onClick={getLocalisation}>
+          {loadingGeoloc && (
+            <Loading size="sm" type="spinner" className="text-primary" active />
+          )}
+          Reload
+        </button>
+      )}
     </div>
   );
 };

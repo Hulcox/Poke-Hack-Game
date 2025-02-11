@@ -1,14 +1,13 @@
+import { Weather } from "@/lib/types";
 import clsx from "clsx";
 import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 
 const WeatherBadge = ({
-  icon,
-  alt,
+  weather,
   className,
 }: {
-  icon: string;
-  alt: string;
+  weather: Weather;
   className?: string;
 }) => {
   return (
@@ -21,8 +20,8 @@ const WeatherBadge = ({
       )}
     >
       <Image
-        src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
-        alt={alt}
+        src={`https://openweathermap.org/img/wn/${weather?.weather[0].icon}@2x.png`}
+        alt={weather.weather[0].description}
         fill
       />
     </div>
