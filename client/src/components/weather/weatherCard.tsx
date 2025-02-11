@@ -1,5 +1,6 @@
 "use client";
 
+import { api } from "@/utils/api";
 import {
   typeStrengthByWeather,
   typeWeaknessesByWeather,
@@ -8,28 +9,24 @@ import { useMutation } from "@tanstack/react-query";
 import { ThermometerSun, Wind } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
-import TypeBadge from "./typeBadge";
+import TypeBadge from "../type/typeBadge";
 import WeatherBadge from "./weatherBadge";
 
 const truncateToFourDecimals = (num: number) =>
   Math.trunc(num * 10_000) / 10_000;
 
-const getWeather = async ({ lat, lon }: { lat: number; lon: number }) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/weather?lat=${truncateToFourDecimals(
-      lat
-    )}&lon=${truncateToFourDecimals(lon)}`,
-    { credentials: "include" }
-  );
-  return await response.json();
-};
-
 const WeatherCard = () => {
   const [errorGeoloc, setErrorGeoloc] = useState(false);
   const [loadingGeoloc, setLoadingGeoloc] = useState(false);
 
+  const urlApi = (lat: number, lon: number) =>
+    `${process.env.NEXT_PUBLIC_API_URL}/weather?lat=${truncateToFourDecimals(
+      lat
+    )}&lon=${truncateToFourDecimals(lon)}`;
+
   const weather = useMutation({
-    mutationFn: getWeather,
+    mutationFn: ({ lat, lon }: { lat: number; lon: number }) =>
+      api(urlApi(lat, lon), { credential: true }),
     onSuccess: (data) => {
       console.log(data);
     },

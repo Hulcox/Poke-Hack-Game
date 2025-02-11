@@ -3,16 +3,6 @@ import { Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import Provider from "./Provider";
 
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
-
 const pressStart2P = Press_Start_2P({
   weight: "400",
   subsets: ["latin"],
@@ -30,10 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="light">
-      <body
-        //className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        className={pressStart2P.className}
-      >
+      <body className={pressStart2P.className}>
         <Provider>{children}</Provider>
       </body>
     </html>

@@ -32,7 +32,7 @@ export interface Team {
   id: number;
   name: string;
   userId: string;
-  pokemonIds: string[];
+  pokemons: PokemonFormSchema[];
   totalHp: number;
 }
 
@@ -67,4 +67,17 @@ export interface FriendData {
 export enum FriendStatus {
   ACCEPTED = "ACCEPTED",
   PENDING = "PENDING",
+}
+export interface PokeCardProps {
+  url: string;
+  searchState: string;
+  typesFilter: string[];
+  className?: string;
+  callback?: (data: {
+    id: number;
+    name: string;
+    img: string;
+    hp: number;
+    attack: number;
+  }) => void;
 }
