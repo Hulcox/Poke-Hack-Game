@@ -38,8 +38,8 @@ const NavBar = () => {
         />
         <div className="divider"></div>
         <NavItem
-          title="Fights"
-          path="/board"
+          title="Battle"
+          path="/battle"
           pathname={pathname}
           icon={<Sword className="mr-2" />}
         />

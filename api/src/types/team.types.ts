@@ -14,4 +14,5 @@ export interface Pokemon {
   img: string;
   hp: number;
   attack: number;
+  types: string[];
 }

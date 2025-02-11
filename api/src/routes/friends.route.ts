@@ -8,6 +8,7 @@ const friendRouter = new Hono();
 friendRouter.use("/*", authMiddleware, sessionMiddleware);
 
 friendRouter.get("/all", FriendController.getAllFriends);
+friendRouter.get("/battle", FriendController.getAllFriendsForBattle);
 friendRouter.post("/add", FriendController.addFriend);
 friendRouter.put("/accept", FriendController.acceptFriend);
 friendRouter.delete("/:id", FriendController.deleteFriend);

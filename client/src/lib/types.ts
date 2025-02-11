@@ -19,6 +19,7 @@ export interface PokemonFormSchema {
   img_back: string;
   hp: number;
   attack: number;
+  types: string[];
 }
 
 export interface Team {
@@ -46,6 +47,7 @@ export interface UserData {
   email: string;
   username: string;
   code: number;
+  teams: Team[];
 }
 
 export interface FriendData {
@@ -73,5 +75,51 @@ export interface PokeCardProps {
     img_back: string;
     hp: number;
     attack: number;
+    types: string[];
   }) => void;
+}
+
+export interface Weather {
+  coord: {
+    lon: number;
+    lat: number;
+  };
+  weather: {
+    id: number;
+    main: string;
+    description: string;
+    icon: string;
+  }[];
+  base: string;
+  main: {
+    temp: number;
+    feels_like: number;
+    temp_min: number;
+    temp_max: number;
+    pressure: number;
+    humidity: number;
+    sea_level?: number;
+    grnd_level?: number;
+  };
+  visibility: number;
+  wind: {
+    speed: number;
+    deg: number;
+    gust?: number;
+  };
+  clouds: {
+    all: number;
+  };
+  dt: number;
+  sys: {
+    type?: number;
+    id?: number;
+    country: string;
+    sunrise: number;
+    sunset: number;
+  };
+  timezone: number;
+  id: number;
+  name: string;
+  cod: number;
 }

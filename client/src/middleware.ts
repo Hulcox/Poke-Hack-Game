@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_ROUTES = ["/home", "/pokedex", "/fight"];
+const PROTECTED_ROUTES = ["/home", "/pokedex", "/teams", "/friends", "/battle"];
 
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;

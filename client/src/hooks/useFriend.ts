@@ -10,3 +10,13 @@ export const useFriendAll = () =>
       }),
     retry: 0,
   });
+
+export const useFriendsforBattle = () =>
+  useQuery({
+    queryKey: ["friends", "battle"],
+    queryFn: () =>
+      api(`${process.env.NEXT_PUBLIC_API_URL}/friend/battle`, {
+        credential: true,
+      }),
+    retry: 0,
+  });

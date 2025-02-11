@@ -14,7 +14,7 @@ const BoxRoot = ({
       <div
         className={twMerge(
           clsx(
-            "bg-base-100 rounded-box ring-4 ring-neutral p-4 h-full",
+            "bg-base-100 rounded-box ring-4 ring-neutral p-4 h-full text-white",
             className
           )
         )}

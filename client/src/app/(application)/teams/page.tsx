@@ -56,7 +56,7 @@ const TeamPage = () => {
           className="text-primary text-center"
           active={isLoading}
         />
-        {isSuccess && teams?.length > 0 && (
+        {isSuccess && !noTeam && (
           <TeamList
             teams={teams}
             onDelete={mutation.mutate}
