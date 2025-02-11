@@ -1,96 +1,67 @@
 "use client";
+import BoxRoot from "@/components/boxRoot";
+import ErrorText from "@/components/error";
 import FriendNav from "@/components/form/friendNav";
-import UserItem from "@/components/friendItem";
-import { FriendData } from "@/lib/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import Header from "@/components/header";
+import Loading from "@/components/loading";
+import FriendList from "@/components/user/friendList";
+import { useFriendAll } from "@/hooks/useFriend";
+import { api } from "@/utils/api";
+import { useMutation } from "@tanstack/react-query";
 import { SmilePlus } from "lucide-react";
 
-const getFriends = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/friend/all`,
-    { credentials: "include" }
-  );
-  return await response.json();
-};
-
-const acceptFriend = async (data: { friendLinkid: number }) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/friend/accept`,
-    { credentials: "include", method: "PUT", body: JSON.stringify(data) }
-  );
-  return await response.json();
-};
-
-const deleteFriend = async (id: number) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/friend/${id}`,
-    { credentials: "include", method: "DELETE" }
-  );
-  return await response.json();
-};
-
 const FriendsPage = () => {
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["friends"],
-    queryFn: getFriends,
-  });
+  const { data, isLoading, isError, refetch } = useFriendAll();
 
-  const acceptedFriend = useMutation({
-    mutationFn: acceptFriend,
+  const acceptFriend = useMutation({
+    mutationFn: (data: { friendLinkid: number }) =>
+      api(`${process.env.NEXT_PUBLIC_API_URL}/friend/accept`, {
+        method: "PUT",
+        data: data,
+        credential: true,
+      }),
     onSuccess: () => {
       refetch();
     },
   });
 
-  const deletedFriend = useMutation({
-    mutationFn: deleteFriend,
+  const deletFriend = useMutation({
+    mutationFn: (id: number) =>
+      api(`${process.env.NEXT_PUBLIC_API_URL}/friend/${id}`, {
+        method: "DELETE",
+        credential: true,
+      }),
     onSuccess: () => {
       refetch();
     },
   });
 
   return (
-    <div className="w-full h-dvh p-8">
-      <div className="bg-base-100 rounded-box ring-4 ring-neutral p-4 h-full flex flex-col">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl flex items-center gap-4">
-            <SmilePlus /> Friends
-          </h2>
-          <FriendNav />
+    <BoxRoot className="flex flex-col">
+      <Header title="Friends" icon={<SmilePlus />} action={<FriendNav />} />
+      <ErrorText
+        title="Error no Data"
+        active={isError}
+        className="flex items-center justify-center flex-1 text-error"
+      />
+      <Loading
+        size="lg"
+        type="spinner"
+        active={isLoading}
+        className="flex items-center justify-center flex-1 text-error"
+      />
+      {data?.message && (
+        <div className="flex items-center justify-center flex-1">
+          No Friends
         </div>
-        {isError && (
-          <div className="flex items-center justify-center flex-1 text-error">
-            Error no Data
-          </div>
-        )}
-        {isLoading && (
-          <div className="flex items-center justify-center flex-1 text-error">
-            <span className="loading loading-spinner loading-lg text-primary"></span>
-          </div>
-        )}
-        {data?.message && (
-          <div className="flex items-center justify-center flex-1">
-            No Friends
-          </div>
-        )}
-        {data instanceof Array && (
-          <div className="mt-12">
-            {data?.map((friend: FriendData, key: number) => (
-              <UserItem
-                key={key}
-                id={friend.id}
-                user={friend.friend}
-                acceptedFriend={acceptedFriend}
-                deletedFriend={deletedFriend}
-                iDoRequest={friend.iDoRequest}
-                status={friend.status}
-                isToAdd={false}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+
+      <FriendList
+        friends={data}
+        onAccept={acceptFriend.mutate}
+        onDelete={deletFriend.mutate}
+      />
+    </BoxRoot>
   );
 };
 

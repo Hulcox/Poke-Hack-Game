@@ -14,6 +14,7 @@ const pokemonSchema = z.object({
   id: z.number(),
   name: z.string(),
   img: z.string(),
+  img_back: z.string(),
   hp: z.number(),
   attack: z.number(),
 });
