@@ -2,9 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
 import { type AddFriend, type UpdateFriend } from "../types/friend.types.js";
 import {
-  ERROR_INVALID_REQUEST,
-  ERROR_INVALID_REQUEST_BODY,
+  ERROR_INTERNAL_SERVER,
   STATUS_CODE_BAD_REQUEST,
+  STATUS_CODE_INTERNAL_SERVER_ERROR,
   STATUS_CODE_NOT_FOUND,
 } from "../utils/constants.js";
 
@@ -37,14 +37,62 @@ export class FriendController {
 
       return c.json(friendList);
     } catch (error) {
-      return c.json({ error: ERROR_INVALID_REQUEST }, STATUS_CODE_BAD_REQUEST);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  static getAllFriendsForBattle = async (c: Context) => {
+    const { userId } = c.get("user");
+
+    try {
+      const friends = await prisma.friend.findMany({
+        where: {
+          OR: [
+            { userId: userId, friend: { teams: { some: {} } } },
+            { friendId: userId, user: { teams: { some: {} } } },
+          ],
+        },
+        include: {
+          user: {
+            omit: { passwordHash: true, passwordSalt: true },
+            include: { teams: true },
+          },
+          friend: {
+            omit: { passwordHash: true, passwordSalt: true },
+            include: { teams: true },
+          },
+        },
+      });
+
+      if (friends.length == 0) {
+        return c.json({ message: "Friends not found" }, STATUS_CODE_NOT_FOUND);
+      }
+
+      const friendList = friends.map(({ user, friend, ...rest }) => {
+        return {
+          ...rest,
+          friend: rest.friendId === userId ? user : friend,
+          iDoRequest: rest.friendId === userId,
+        };
+      });
+
+      return c.json(friendList);
+    } catch (error) {
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   static addFriend = async (c: Context) => {
     const { userId } = c.get("user");
-    const { friendId } = await c.req.json<AddFriend>();
     try {
+      const { friendId } = await c.req.json<AddFriend>();
+
       const isExist = await prisma.friend.findFirst({
         where: {
           OR: [
@@ -71,16 +119,16 @@ export class FriendController {
       return c.json(friend);
     } catch (error) {
       return c.json(
-        { error: ERROR_INVALID_REQUEST_BODY },
-        STATUS_CODE_BAD_REQUEST
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
       );
     }
   };
 
   static acceptFriend = async (c: Context) => {
-    const { friendLinkid } = await c.req.json<UpdateFriend>();
-
     try {
+      const { friendLinkid } = await c.req.json<UpdateFriend>();
+
       const friend = await prisma.friend.update({
         data: {
           status: "ACCEPTED",
@@ -94,15 +142,14 @@ export class FriendController {
       return c.json(friend);
     } catch (error) {
       return c.json(
-        { error: ERROR_INVALID_REQUEST_BODY },
-        STATUS_CODE_BAD_REQUEST
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
       );
     }
   };
 
   static deleteFriend = async (c: Context) => {
     const friendLinkid = c.req.param("id");
-
     try {
       await prisma.friend.delete({
         where: { id: Number(friendLinkid) },
@@ -110,7 +157,10 @@ export class FriendController {
 
       return c.json({ message: "Friend has correctly deleted" });
     } catch (error) {
-      return c.json({ error: ERROR_INVALID_REQUEST }, STATUS_CODE_BAD_REQUEST);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 }

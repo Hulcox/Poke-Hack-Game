@@ -2,9 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
 import type { CreateTeam, UpdateTeam } from "../types/team.types.js";
 import {
-  ERROR_INVALID_REQUEST,
-  ERROR_INVALID_REQUEST_BODY,
-  STATUS_CODE_BAD_REQUEST,
+  ERROR_INTERNAL_SERVER,
+  STATUS_CODE_INTERNAL_SERVER_ERROR,
   STATUS_CODE_NOT_FOUND,
 } from "../utils/constants.js";
 
@@ -26,7 +25,10 @@ export class TeamController {
 
       return c.json(teams);
     } catch (error) {
-      return c.json({ error: ERROR_INVALID_REQUEST }, STATUS_CODE_BAD_REQUEST);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -44,19 +46,24 @@ export class TeamController {
 
       return c.json(teams);
     } catch (error) {
-      return c.json({ error: ERROR_INVALID_REQUEST }, STATUS_CODE_BAD_REQUEST);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   static createTeam = async (c: Context) => {
     const user = c.get("user");
-    const { name, team } = await c.req.json<CreateTeam>();
-
     try {
+      const { name, team } = await c.req.json<CreateTeam>();
+
       const createdTeam = await prisma.team.create({
         data: {
           name: name,
-          pokemonIds: team.map((pokemon) => pokemon.id.toString()),
+          pokemons: team.map((team) => {
+            return { ...team };
+          }),
           totalHp: team.reduce((acc, pokemon) => {
             return acc + pokemon.hp;
           }, 0),
@@ -67,8 +74,8 @@ export class TeamController {
       return c.json(createdTeam);
     } catch (error) {
       return c.json(
-        { error: ERROR_INVALID_REQUEST_BODY },
-        STATUS_CODE_BAD_REQUEST
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
       );
     }
   };
@@ -76,13 +83,15 @@ export class TeamController {
   static updateTeam = async (c: Context) => {
     const user = c.get("user");
     const id = c.req.param("id");
-    const { name, team } = await c.req.json<UpdateTeam>();
-
     try {
+      const { name, team } = await c.req.json<UpdateTeam>();
+
       const updateTeam = await prisma.team.update({
         data: {
           name: name,
-          pokemonIds: team.map((pokemon) => pokemon.id.toString()),
+          pokemons: team.map((team) => {
+            return { ...team };
+          }),
           totalHp: team.reduce((acc, pokemon) => {
             return acc + pokemon.hp;
           }, 0),
@@ -96,8 +105,8 @@ export class TeamController {
       return c.json(updateTeam);
     } catch (error) {
       return c.json(
-        { error: ERROR_INVALID_REQUEST_BODY },
-        STATUS_CODE_BAD_REQUEST
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
       );
     }
   };
@@ -113,7 +122,10 @@ export class TeamController {
 
       return c.json({ message: "Team has correctly deleted" });
     } catch (error) {
-      return c.json({ error: ERROR_INVALID_REQUEST }, STATUS_CODE_BAD_REQUEST);
+      return c.json(
+        { error: ERROR_INTERNAL_SERVER },
+        STATUS_CODE_INTERNAL_SERVER_ERROR
+      );
     }
   };
 }

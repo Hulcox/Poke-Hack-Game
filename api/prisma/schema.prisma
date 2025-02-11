@@ -18,6 +18,12 @@ enum FriendStatus {
   ACCEPTED
 }
 
+enum BattleStatus {
+  ONGOING
+  WIN
+  LOOSE
+}
+
 model User {
   id  Int @id @default(autoincrement())
   email String @unique
@@ -32,18 +38,25 @@ model User {
   friends Friend[] @relation("UserFriends")
   friendOf  Friend[] @relation("UserFriendsOf")
 
+  attackerBattle Battle[] @relation("AttackerBattle")
+  defenderBattle Battle[] @relation("DefenderBattle")
+
   @@unique([username, code])
 }
 
 model Team {
   id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
   name String
-  pokemonIds String[]
+  pokemons Json[]
   totalHp Int
+  isFavorite Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attackerTeamBattle Battle[] @relation("AttackerTeamBattle")
+  defenderTeamBattle Battle[] @relation("DefenderTeamBattle")
 }
 
 model Friend {
@@ -58,4 +71,21 @@ model Friend {
   friend User @relation("UserFriendsOf", fields: [friendId], references: [id], onDelete: Cascade)
 
   @@unique([userId, friendId])
+}
+
+model Battle {
+  id Int @id @default(autoincrement())
+  attackerId Int
+  attackerTeamId Int
+  defenderId Int
+  defenderTeamId Int
+  movesHistory Json[] @default([])
+  status BattleStatus @default(ONGOING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  attacker User @relation("AttackerBattle", fields: [attackerId], references: [id])
+  defender User @relation("DefenderBattle", fields: [defenderId], references: [id])
+  attackerTeam Team @relation("AttackerTeamBattle", fields: [attackerTeamId], references: [id])
+  defenderTeam Team @relation("DefenderTeamBattle", fields: [defenderTeamId], references: [id])
 }

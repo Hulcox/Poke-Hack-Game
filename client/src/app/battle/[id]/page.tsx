@@ -7,12 +7,12 @@ const getPokemon = async () => {
   return await response.json();
 };
 
-const BoardGame = () => {
+const BattleGamePage = () => {
   const query = useQuery({ queryKey: ["test"], queryFn: getPokemon });
 
   return (
     query.data && (
-      <div className="flex flex-row w-full h-full bg-gradient-to-t from-black to-white">
+      <div className="flex flex-row w-dvw h-dvh bg-gradient-to-t from-black to-white">
         <div className="flex-1 h-full flex flex-col justify-between ">
           <div className="h-3/4 flex p-8">
             <div className="relative h-full w-1/2  flex flex-col justify-end items-center">
@@ -73,4 +73,4 @@ const BoardGame = () => {
   );
 };
 
-export default BoardGame;
+export default BattleGamePage;
