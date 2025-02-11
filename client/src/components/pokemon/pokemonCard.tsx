@@ -1,13 +1,21 @@
 "use client";
 
 import { usePokemon } from "@/hooks/usePokemon";
-import { PokeCardProps } from "@/lib/types";
+import { PokeCardProps, PokemonFormSchema } from "@/lib/types";
 import clsx from "clsx";
 import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 import ErrorText from "../error";
 import Loading from "../loading";
 import TypeList from "../type/typeList";
+
+export interface PokemonCardProps {
+  url: string;
+  searchState: string;
+  typesFilter: string[];
+  className?: string;
+  callback?: (data: PokemonFormSchema) => void;
+}
 
 const PokemonCard = ({
   url,
@@ -49,6 +57,8 @@ const PokemonCard = ({
   const hp = stats[0].base_stat;
   const attack = stats[1].base_stat;
   const img = sprites.front_default;
+  const img_back = sprites.back_default;
+
   const typeList = types.map(
     ({ type }: { type: { name: string } }) => type.name
   );
@@ -72,7 +82,7 @@ const PokemonCard = ({
           className
         )
       )}
-      onClick={() => callback?.({ id, name, img, hp, attack })}
+      onClick={() => callback?.({ id, name, img, img_back, hp, attack })}
     >
       <div className="flex items-baseline gap-2">
         <h3 className="!text-sm">

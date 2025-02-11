@@ -1,4 +1,4 @@
-import NavBar from "@/components/navBar";
+import NavBar from "@/components/nav/navBar";
 import { ReactNode } from "react";
 
 const HomeLayout = ({ children }: { children: ReactNode }) => {
