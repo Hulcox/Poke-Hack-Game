@@ -1,17 +1,13 @@
 "use client";
 
-import PokemonBullet from "@/components/pokemonBullet";
-import { Team } from "@/lib/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Cat, Pencil, Trash } from "lucide-react";
+import ErrorText from "@/components/error";
+import Header from "@/components/header";
+import Loading from "@/components/loading";
+import TeamList from "@/components/team/teamList";
+import { useTeamAll } from "@/hooks/useTeam";
+import { useMutation } from "@tanstack/react-query";
+import { Cat } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const getTeam = async () => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/team/all`, {
-    credentials: "include",
-  });
-  return await response.json();
-};
 
 const deleteTeam = async (id: number) => {
   const response = await fetch(
@@ -25,10 +21,7 @@ const deleteTeam = async (id: number) => {
 };
 
 const TeamPage = () => {
-  const { data, isSuccess, refetch } = useQuery({
-    queryKey: ["team"],
-    queryFn: getTeam,
-  });
+  const { teams, isSuccess, isLoading, refetch } = useTeamAll();
 
   const router = useRouter();
 
@@ -43,61 +36,39 @@ const TeamPage = () => {
     router.push("/teams/create");
   };
 
-  const goToUpdatePage = (id: number) => {
-    router.push(`/teams/update/${id}`);
-  };
+  const noTeam = teams?.status == 404;
 
   return (
     <div className="w-full h-dvh p-8">
       <div className="bg-base-100 rounded-box ring-4 ring-neutral p-4 h-full">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl flex items-center gap-4">
-            <Cat /> My Teams
-          </h2>
-          <button className="btn btn-sm btn-primary" onClick={goToCreatePage}>
-            Create a new team
-          </button>
-        </div>
+        <Header
+          title="My Teams"
+          icon={<Cat />}
+          action={
+            <button className="btn btn-sm btn-primary" onClick={goToCreatePage}>
+              Create a new team
+            </button>
+          }
+        />
         <div className="mt-12">
-          {isSuccess && data.length == 0 && <h2>{"You don't have team"}</h2>}
-          {isSuccess &&
-            data.length > 0 &&
-            data?.map((team: Team, key: number) => (
-              <div key={key}>
-                <div className="divider"></div>
-                <div className="flex items-center justify-between">
-                  <h4>
-                    #<span className="text-primary">{team.id}</span>
-                  </h4>
-                  <h4>{team.name}</h4>
-                  <div className="flex items-center gap-4">
-                    {team.pokemonIds.map((id: string, key) => (
-                      <PokemonBullet
-                        key={key}
-                        url={`${process.env.NEXT_PUBLIC_POKEAPI_URL}/pokemon/${id}`}
-                      />
-                    ))}
-                  </div>
-                  <h4>
-                    Total Hp:<span className="text-info">{team.totalHp}</span>
-                  </h4>
-                  <div className="flex justify-center gap-4">
-                    <button
-                      className="btn btn-square btn-outline btn-sm text-neutral btn-success"
-                      onClick={() => goToUpdatePage(team.id)}
-                    >
-                      <Pencil />
-                    </button>
-                    <button
-                      className="btn btn-square btn-outline btn-sm text-neutral btn-error"
-                      onClick={() => mutation.mutate(team.id)}
-                    >
-                      <Trash />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <ErrorText
+            title={"You don't have team"}
+            active={isSuccess && noTeam}
+            className="text-center"
+          />
+          <Loading
+            size="lg"
+            type="spinner"
+            className="text-primary text-center"
+            active={isLoading}
+          />
+          {isSuccess && teams?.length > 0 && (
+            <TeamList
+              teams={teams}
+              onDelete={mutation.mutate}
+              onUpdate={router.push}
+            />
+          )}
         </div>
       </div>
     </div>

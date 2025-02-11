@@ -1,11 +1,9 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal } from "lucide-react";
-
-const getTypes = async () => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_POKEAPI_URL}/type`);
-  return await response.json();
-};
+import { useTypes } from "../../hooks/useTypes";
+import ErrorText from "../error";
+import Loading from "../loading";
+import SliderFilter from "./sliderFilter";
 
 const TypesFilter = ({
   typesState,
@@ -14,7 +12,8 @@ const TypesFilter = ({
   typesState: string[];
   setTypesState: React.Dispatch<React.SetStateAction<string[]>>;
 }) => {
-  const { data } = useQuery({ queryKey: ["types"], queryFn: getTypes });
+  const { data, isLoading, isError } = useTypes();
+
   const handleUpdateTypesState = (value: string) => {
     if (typesState.includes(value)) {
       setTypesState((prev) => [...prev.filter((name) => name != value)]);
@@ -22,6 +21,7 @@ const TypesFilter = ({
       setTypesState((prev) => [...prev, value]);
     }
   };
+
   return (
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost">
@@ -31,6 +31,17 @@ const TypesFilter = ({
         tabIndex={0}
         className="dropdown-content menu bg-neutral ring-2 ring-primary rounded-box z-[1] w-96 p-2 shadow"
       >
+        <ErrorText
+          title="No Types"
+          active={isError}
+          className="flex justify-center items-center h-44"
+        />
+        <Loading
+          size="md"
+          type="spinner"
+          className="text-primary flex justify-center items-center h-44"
+          active={isLoading}
+        />
         {data && (
           <div className="space-y-4">
             <div>
@@ -49,24 +60,8 @@ const TypesFilter = ({
                 ))}
               </div>
             </div>
-            <div>
-              <h4 className="text-sm my-2">HP:</h4>
-              <input
-                type="range"
-                min={0}
-                max="100"
-                className="range range-info"
-              />
-            </div>
-            <div>
-              <h4 className="text-sm my-2">Attack:</h4>
-              <input
-                type="range"
-                min={0}
-                max="100"
-                className="range range-error"
-              />
-            </div>
+            <SliderFilter name="HP:" type="info" />
+            <SliderFilter name="Attack:" type="error" />
           </div>
         )}
       </div>
