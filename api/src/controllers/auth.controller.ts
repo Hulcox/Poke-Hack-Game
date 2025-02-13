@@ -4,11 +4,11 @@ import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import { deleteSession, saveSession } from "../services/redis.service.js";
 import type { CreateUser, SignInUser } from "../types/user.types.js";
-import { hashPassword } from "../utils/hashPassword.js";
 import {
   ERROR_INTERNAL_SERVER,
   STATUS_CODE_INTERNAL_SERVER_ERROR,
 } from "../utils/constants.js";
+import { hashPassword } from "../utils/hashPassword.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "";
 const SESSION_EXPIRY = 3600 * 24; //24h
@@ -41,9 +41,9 @@ export class AuthController {
       );
 
       setCookie(c, "auth_token", token, {
-        httpOnly: false,
-        secure: false,
-        sameSite: "Lax",
+        httpOnly: process.env.COOKIE_HTTP_ONLY === "true",
+        secure: process.env.COOKIE_SECURE === "true",
+        sameSite: process.env.COOKIE_SAME_SITE as "None" | "Lax" | "Strict",
         path: "/",
         maxAge: SESSION_EXPIRY,
       });
