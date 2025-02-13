@@ -18,14 +18,11 @@ const BattlePage = () => {
   const [attackerTeam, setAttackerTeam] = useState<Team | null>(null);
   const [defenderTeam, setDefenderTeam] = useState<Team | null>(null);
 
-  const { teams, isSuccess, isLoading } = useTeamAll();
+  const { teams, isError, isSuccess, isLoading } = useTeamAll();
   const friends = useFriendsforBattle();
 
   const { location, errorGeoloc } = useGeolocation();
   const { weather, isError: weatherError } = useWeather(location);
-
-  const noTeam = teams?.status === 404;
-  const noFriends = friends.data?.status === 404;
 
   if (errorGeoloc || weatherError) {
     return (
@@ -46,10 +43,10 @@ const BattlePage = () => {
         <BattleSelection
           title="Choose your team"
           errorText={"You don't have team"}
-          isError={noTeam}
+          isError={isError}
           isLoading={isLoading}
         >
-          {isSuccess && !noTeam && (
+          {isSuccess && (
             <TeamList
               teams={teams}
               onChoose={(team: Team) => setAttackerTeam(team)}
@@ -61,11 +58,11 @@ const BattlePage = () => {
           <BattleSelection
             title="Choose your adverser"
             errorText={"You don't have friend with a team to do a batlte"}
-            isError={friends.isSuccess && noFriends}
+            isError={friends.isError}
             isLoading={friends.isLoading}
             goBack={() => setAttackerTeam(null)}
           >
-            {friends.isSuccess && !noFriends && (
+            {friends.isSuccess && (
               <BattleFriendList
                 friends={friends.data}
                 onChoose={(team: Team) => setDefenderTeam(team)}

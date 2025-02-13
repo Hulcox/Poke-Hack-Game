@@ -40,7 +40,7 @@ const FriendsPage = () => {
     <BoxRoot className="flex flex-col">
       <Header title="Friends" icon={<SmilePlus />} action={<FriendNav />} />
       <ErrorText
-        title="Error no Data"
+        title="Error no friends"
         active={isError}
         className="flex items-center justify-center flex-1 text-error"
       />
@@ -50,12 +50,6 @@ const FriendsPage = () => {
         active={isLoading}
         className="flex items-center justify-center flex-1 text-error"
       />
-      {data?.message && (
-        <div className="flex items-center justify-center flex-1">
-          No Friends
-        </div>
-      )}
-
       <FriendList
         friends={data}
         onAccept={acceptFriend.mutate}

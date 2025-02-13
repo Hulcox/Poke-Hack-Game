@@ -7,6 +7,8 @@ const battleRouter = new Hono();
 
 battleRouter.use("/*", authMiddleware, sessionMiddleware);
 
+battleRouter.get("/:id", BattleController.getBattle);
 battleRouter.post("/start", BattleController.startBattle);
+battleRouter.post("/attack", BattleController.attackBattle);
 
 export default battleRouter;
