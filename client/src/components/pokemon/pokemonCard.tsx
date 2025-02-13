@@ -75,7 +75,16 @@ const PokemonCard = ({
         )
       )}
       onClick={() =>
-        callback?.({ id, name, img, img_back, hp, attack, types: typeList })
+        callback?.({
+          id,
+          name,
+          img,
+          img_back,
+          hp,
+          hp_base: hp,
+          attack,
+          types: typeList,
+        })
       }
     >
       <div className="flex items-baseline gap-2">

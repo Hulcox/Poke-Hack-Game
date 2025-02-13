@@ -1,8 +1,10 @@
 "use client";
 import BoxRoot from "@/components/boxRoot";
+import ErrorText from "@/components/error";
 import SearchFilter from "@/components/filter/searchFilter";
 import FriendNav from "@/components/form/friendNav";
 import Header from "@/components/header";
+import Loading from "@/components/loading";
 import UserList from "@/components/user/userList";
 import { api } from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
@@ -45,10 +47,18 @@ const AddFriendsPage = () => {
           placeholder="Search User"
         />
       </div>
-      {users.data?.length === 0 && (
-        <div className="text-center text-error">No user found!</div>
-      )}
-      {users.data?.length > 0 && (
+      <ErrorText
+        title="No user found"
+        className="text-center text-error"
+        active={users.isError}
+      />
+      <Loading
+        size="lg"
+        type="spinner"
+        className="text-primary text-center"
+        active={users.isPending}
+      />
+      {users.isSuccess && (
         <UserList users={users.data} onAdd={addFriend.mutate} />
       )}
     </BoxRoot>

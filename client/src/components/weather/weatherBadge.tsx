@@ -21,7 +21,7 @@ const WeatherBadge = ({
     >
       <Image
         src={`https://openweathermap.org/img/wn/${weather?.weather[0].icon}@2x.png`}
-        alt={weather.weather[0].description}
+        alt={weather?.weather[0].description}
         fill
       />
     </div>

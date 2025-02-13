@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { getWeather, saveWeather } from "../services/redis.service.js";
+import { getWeather, saveWeather } from "../services/weather.service.js";
 import {
   ERROR_INTERNAL_SERVER,
   STATUS_CODE_BAD_REQUEST,

@@ -18,6 +18,7 @@ export interface PokemonFormSchema {
   img: string;
   img_back: string;
   hp: number;
+  hp_base: number;
   attack: number;
   types: string[];
 }
@@ -74,6 +75,7 @@ export interface PokeCardProps {
     img: string;
     img_back: string;
     hp: number;
+    hp_base: number;
     attack: number;
     types: string[];
   }) => void;
@@ -122,4 +124,28 @@ export interface Weather {
   id: number;
   name: string;
   cod: number;
+}
+
+export interface Battle {
+  id: number;
+  attackerId: number;
+  attackerTeamId: number;
+  defenderId: number;
+  defenderTeamId: number;
+  movesHistory: Move[];
+  status: "ONGOING" | "WIN" | "LOOSE";
+  attacker: UserData;
+  attackerTeam: PokemonFormSchema[];
+  defender: UserData;
+  defenderTeam: PokemonFormSchema[];
+  activeAttackerPokemon: PokemonFormSchema;
+  activeDefenderPokemon: PokemonFormSchema;
+}
+
+export interface Move {
+  moveId: number;
+  attackerPokemonId: number;
+  defenderPokemonId: number;
+  damage: number;
+  timestamp: string;
 }
