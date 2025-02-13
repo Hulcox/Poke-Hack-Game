@@ -20,12 +20,12 @@ app.use(
   })
 );
 
-app.route("/auth", authRouter);
-app.route("/user", userRouter);
-app.route("/team", teamRouter);
-app.route("/friend", friendRouter);
-app.route("/weather", weatherRoute);
-app.route("/battle", battleRouter);
+app.route("/api/auth", authRouter);
+app.route("/api/user", userRouter);
+app.route("/api/team", teamRouter);
+app.route("/api/friend", friendRouter);
+app.route("/api/weather", weatherRoute);
+app.route("/api/battle", battleRouter);
 
 app.onError((err, c) => {
   console.log("Erreur", err);

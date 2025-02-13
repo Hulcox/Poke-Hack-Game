@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build: ./api
@@ -11,6 +9,15 @@ services:
     depends_on:
       - db
       - redis
+
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3030"
+    depends_on:
+      - api
 
   db:
     image: postgres:16
