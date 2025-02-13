@@ -51,31 +51,31 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     },
   });
 
-  const switchPoke = useMutation({
-    mutationFn: (by: string) =>
-      api(`${process.env.NEXT_PUBLIC_API_URL}/battle/switch`, {
-        method: "POST",
-        data: {
-          id: battle.id,
-          by: by,
-          type: "SWITCH",
-          from:
-            by == "ATTACKER"
-              ? battle.activeAttackerPokemon
-              : battle.activeDefenderPokemon,
-          to:
-            by == "ATTACKER"
-              ? battle.activeDefenderPokemon
-              : battle.activeAttackerPokemon,
-        },
-        credential: true,
-      }),
-    onSuccess: (data) => {
-      console.log(data);
-      setActiveAttackerPokemon(data.activeAttackerPokemon);
-      setActiveDefenderPokemon(data.activeDefenderPokemon);
-    },
-  });
+  // const switchPoke = useMutation({
+  //   mutationFn: (by: string) =>
+  //     api(`${process.env.NEXT_PUBLIC_API_URL}/battle/switch`, {
+  //       method: "POST",
+  //       data: {
+  //         id: battle.id,
+  //         by: by,
+  //         type: "SWITCH",
+  //         from:
+  //           by == "ATTACKER"
+  //             ? battle.activeAttackerPokemon
+  //             : battle.activeDefenderPokemon,
+  //         to:
+  //           by == "ATTACKER"
+  //             ? battle.activeDefenderPokemon
+  //             : battle.activeAttackerPokemon,
+  //       },
+  //       credential: true,
+  //     }),
+  //   onSuccess: (data) => {
+  //     console.log(data);
+  //     setActiveAttackerPokemon(data.activeAttackerPokemon);
+  //     setActiveDefenderPokemon(data.activeDefenderPokemon);
+  //   },
+  // });
 
   const attackFn = (by: string) => {
     animateDialog(by).then(() => {
