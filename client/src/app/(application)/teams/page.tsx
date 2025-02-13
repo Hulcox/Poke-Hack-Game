@@ -12,7 +12,7 @@ import { Cat } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const TeamPage = () => {
-  const { teams, isSuccess, isLoading, refetch } = useTeamAll();
+  const { teams, isError, isSuccess, isLoading, refetch } = useTeamAll();
 
   const router = useRouter();
 
@@ -31,8 +31,6 @@ const TeamPage = () => {
     router.push("/teams/create");
   };
 
-  const noTeam = teams?.status == 404;
-
   return (
     <BoxRoot>
       <Header
@@ -47,7 +45,7 @@ const TeamPage = () => {
       <div className="mt-12">
         <ErrorText
           title={"You don't have team"}
-          active={isSuccess && noTeam}
+          active={isError}
           className="text-center"
         />
         <Loading
@@ -56,7 +54,7 @@ const TeamPage = () => {
           className="text-primary text-center"
           active={isLoading}
         />
-        {isSuccess && !noTeam && (
+        {isSuccess && (
           <TeamList
             teams={teams}
             onDelete={mutation.mutate}

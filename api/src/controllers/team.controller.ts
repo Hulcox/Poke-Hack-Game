@@ -57,7 +57,7 @@ export class TeamController {
     const user = c.get("user");
     try {
       const { name, team } = await c.req.json<CreateTeam>();
-
+      //TODO put team in fav
       const createdTeam = await prisma.team.create({
         data: {
           name: name,

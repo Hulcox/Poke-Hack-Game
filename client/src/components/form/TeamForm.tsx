@@ -16,6 +16,7 @@ const pokemonSchema = z.object({
   img: z.string(),
   img_back: z.string(),
   hp: z.number(),
+  hp_base: z.number(),
   attack: z.number(),
   types: z.array(z.string()),
 });
