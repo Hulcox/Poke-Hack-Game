@@ -78,10 +78,16 @@ const team = [
 async function main() {
   console.log("Seeding database...");
 
-  await prisma.user.deleteMany();
-  await prisma.team.deleteMany();
-  await prisma.friend.deleteMany();
-  await prisma.battle.deleteMany();
+  const [passwordHash, passwordSalt] = hashPassword("123456");
+  await prisma.user.create({
+    data: {
+      email: "test@test.com",
+      username: "Hulcox",
+      passwordHash: passwordHash,
+      passwordSalt: passwordSalt,
+      code: 111111,
+    },
+  });
 
   const users = [];
   for (let i = 0; i < 10; i++) {

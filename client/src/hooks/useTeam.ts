@@ -8,6 +8,7 @@ export const useTeamAll = () => {
       api(`${process.env.NEXT_PUBLIC_API_URL}/team/all`, {
         credential: true,
       }),
+    retry: 0,
   });
 
   return { teams: data, isLoading, isError, isSuccess, refetch };

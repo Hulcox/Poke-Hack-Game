@@ -10,5 +10,6 @@ battleRouter.use("/*", authMiddleware, sessionMiddleware);
 battleRouter.get("/:id", BattleController.getBattle);
 battleRouter.post("/start", BattleController.startBattle);
 battleRouter.post("/attack", BattleController.attackBattle);
+battleRouter.post("/switch", BattleController.switchBattle);
 
 export default battleRouter;

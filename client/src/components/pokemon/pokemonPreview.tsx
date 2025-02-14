@@ -30,6 +30,7 @@ const PokemonPreview = ({ pokemon, setPokemonList }: PokemonPreviewProps) => {
         alt="pokemon teams img"
         width={150}
         height={150}
+        unoptimized={true}
       />
       <div className="flex items-baseline gap-4">
         <h3 className="!text-xs flex">

@@ -9,6 +9,7 @@ const PokemonBullet = ({ img }: { img: string }) => {
         width={75}
         height={75}
         className="mask mask-circle bg-neutral-content"
+        unoptimized={true}
       />
     </div>
   );

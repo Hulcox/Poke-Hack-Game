@@ -15,63 +15,61 @@ const prisma = new PrismaClient();
 
 export class BattleController {
   static async getBattle(c: Context) {
-    try {
-      const { userId } = c.get("user");
-      const id = Number(c.req.param("id"));
+    //try {
+    const { userId } = c.get("user");
+    const id = Number(c.req.param("id"));
 
-      if (isNaN(id)) {
-        return c.json({ error: "Invalid battle ID" }, STATUS_CODE_BAD_REQUEST);
-      }
+    if (isNaN(id)) {
+      return c.json({ error: "Invalid battle ID" }, STATUS_CODE_BAD_REQUEST);
+    }
 
-      const battle = await prisma.battle.findFirst({
-        where: { id, attackerId: userId },
-        include: {
-          attacker: true,
-          attackerTeam: true,
-          defender: true,
-          defenderTeam: true,
-        },
-      });
+    const battle = await prisma.battle.findFirst({
+      where: { id, attackerId: userId },
+      include: {
+        attacker: true,
+        attackerTeam: true,
+        defender: true,
+        defenderTeam: true,
+      },
+    });
 
-      if (!battle) {
-        return c.json({ error: "Battle not found" }, STATUS_CODE_NOT_FOUND);
-      }
+    if (!battle) {
+      return c.json({ error: "Battle not found" }, STATUS_CODE_NOT_FOUND);
+    }
 
-      const attackerTeam = battle.attackerTeam
-        ?.pokemons as unknown as Pokemon[];
-      const defenderTeam = battle.defenderTeam
-        ?.pokemons as unknown as Pokemon[];
+    const attackerTeam = battle.attackerTeam?.pokemons as unknown as Pokemon[];
+    const defenderTeam = battle.defenderTeam?.pokemons as unknown as Pokemon[];
 
-      if (!attackerTeam || !defenderTeam) {
-        return c.json(
-          { error: "Invalid team data" },
-          STATUS_CODE_INTERNAL_SERVER_ERROR
-        );
-      }
-
-      const activeAttackerPokemon = attackerTeam[0];
-      const activeDefenderPokemon = defenderTeam[0];
-
-      await saveBattle(battle.id, {
-        attackerTeam,
-        defenderTeam,
-        activeAttackerPokemon,
-        activeDefenderPokemon,
-      });
-
-      return c.json({
-        ...battle,
-        attackerTeam,
-        defenderTeam,
-        activeAttackerPokemon,
-        activeDefenderPokemon,
-      });
-    } catch (error) {
+    if (!attackerTeam || !defenderTeam) {
       return c.json(
-        { error: ERROR_INTERNAL_SERVER },
+        { error: "Invalid team data" },
         STATUS_CODE_INTERNAL_SERVER_ERROR
       );
     }
+
+    const activeAttackerPokemon = attackerTeam[0];
+    const activeDefenderPokemon = defenderTeam[0];
+
+    await saveBattle(battle.id, {
+      attackerTeam,
+      defenderTeam,
+      activeAttackerPokemon,
+      activeDefenderPokemon,
+    });
+
+    return c.json({
+      ...battle,
+      attackerTeam,
+      defenderTeam,
+      activeAttackerPokemon,
+      activeDefenderPokemon,
+    });
+    // } catch (error) {
+    //   return c.json(
+    //     { error: ERROR_INTERNAL_SERVER },
+    //     STATUS_CODE_INTERNAL_SERVER_ERROR
+    //   );
+    // }
   }
 
   static async startBattle(c: Context) {
@@ -135,6 +133,14 @@ export class BattleController {
       );
     }
 
+    const move = {
+      by,
+      type,
+      from: from.id,
+      to: to.id,
+      value: from.attack,
+    } as Move;
+
     const battle = await prisma.battle.update({
       where: { id },
       data: {
@@ -148,37 +154,43 @@ export class BattleController {
           },
         },
       },
-      include: {
-        attackerTeam: true,
-        defenderTeam: true,
-      },
     });
 
-    const moveHistory = battle.movesHistory as unknown as Move[];
+    let attackerTeam: Pokemon[] = [];
+    let defenderTeam: Pokemon[] = [];
 
-    const lastAttackerMove = moveHistory
-      .filter((m) => m.by === "ATTACKER")
-      .pop();
-    const lastDefenderMove = moveHistory
-      .filter((m) => m.by === "DEFENDER")
-      .pop();
+    if (by == "DEFENDER") {
+      attackerTeam = applyMove(battleCache.attackerTeam, move);
+      defenderTeam = battleCache.defenderTeam;
+    }
+    if (by == "ATTACKER") {
+      attackerTeam = battleCache.attackerTeam;
+      defenderTeam = applyMove(battleCache.defenderTeam, move);
+    }
 
-    const updatedAttackerTeam = applyMove(
-      battleCache.attackerTeam,
-      lastDefenderMove
+    const activeAttackerPokemon = attackerTeam.find(
+      (pokemon: Pokemon) => pokemon.id == battleCache.activeAttackerPokemon.id
     );
-    const updatedDefenderTeam = applyMove(
-      battleCache.defenderTeam,
-      lastAttackerMove
+    const activeDefenderPokemon = defenderTeam.find(
+      (pokemon: Pokemon) => pokemon.id == battleCache.activeDefenderPokemon.id
     );
+
+    if (activeAttackerPokemon && activeDefenderPokemon)
+      await saveBattle(id, {
+        attackerTeam,
+        defenderTeam,
+        activeAttackerPokemon,
+        activeDefenderPokemon,
+      });
 
     return c.json({
       ...battle,
-      attackerTeam: updatedAttackerTeam,
-      defenderTeam: updatedDefenderTeam,
-      activeAttackerPokemon: battleCache.activeAttackerPokemon,
-      activeDefenderPokemon: battleCache.activeDefenderPokemon,
+      attackerTeam,
+      defenderTeam,
+      activeAttackerPokemon,
+      activeDefenderPokemon,
     });
+
     // } catch (error) {
     //   return c.json(
     //     { error: ERROR_INTERNAL_SERVER },
@@ -187,7 +199,76 @@ export class BattleController {
     // }
   }
 
-  static moveBattle = async (c: Context) => {};
+  static async switchBattle(c: Context) {
+    //try {
+    const { id, by, type, from, to } = await c.req.json<AttackBattle>();
+
+    if (!id || !by || !type || !from || !to) {
+      return c.json(
+        { error: ERROR_INVALID_REQUEST_BODY },
+        STATUS_CODE_BAD_REQUEST
+      );
+    }
+
+    const battleCache = await getBattle(id);
+    if (!battleCache) {
+      return c.json(
+        { error: "Battle not found in cache" },
+        STATUS_CODE_NOT_FOUND
+      );
+    }
+
+    const battle = await prisma.battle.update({
+      where: { id },
+      data: {
+        movesHistory: {
+          push: {
+            by,
+            type,
+            from: from.id,
+            to: to.id,
+            value: null,
+          },
+        },
+      },
+    });
+
+    const activeAttackerPokemon = battleCache.attackerTeam.find(
+      (pokemon: Pokemon) => pokemon.id == to.id
+    );
+    const activeDefenderPokemon = battleCache.defenderTeam.find(
+      (pokemon: Pokemon) => pokemon.id == to.id
+    );
+
+    console.log(activeDefenderPokemon);
+
+    const savedData = {
+      attackerTeam: battleCache.attackerTeam,
+      defenderTeam: battleCache.defenderTeam,
+      activeAttackerPokemon:
+        by == "ATTACKER"
+          ? activeAttackerPokemon
+          : battleCache.activeAttackerPokemon,
+      activeDefenderPokemon:
+        by == "DEFENDER"
+          ? activeDefenderPokemon
+          : battleCache.activeDefenderPokemon,
+    };
+
+    await saveBattle(id, savedData);
+
+    return c.json({
+      ...battle,
+      ...savedData,
+    });
+
+    // } catch (error) {
+    //   return c.json(
+    //     { error: ERROR_INTERNAL_SERVER },
+    //     STATUS_CODE_INTERNAL_SERVER_ERROR
+    //   );
+    // }
+  }
 }
 
 const applyMove = (pokemon: Pokemon[], lastMove?: Move): Pokemon[] => {

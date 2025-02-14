@@ -15,4 +15,5 @@ export interface Pokemon {
   hp: number;
   attack: number;
   types: string[];
+  isDead?: boolean;
 }

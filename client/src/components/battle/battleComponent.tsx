@@ -13,6 +13,8 @@ interface BattleComponentProps {
 
 const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
   const [attackerTeam, setAttackerTeam] = useState(battle.attackerTeam);
+  const [defenderTeam, setDefenderTeam] = useState(battle.defenderTeam);
+
   const [activeAttackerPokemon, setActiveAttackerPokemon] = useState(
     battle.activeAttackerPokemon
   );
@@ -24,85 +26,103 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     "C'est au tour de Charizard de Romain d'attaquer !!"
   );
 
-  const attack = useMutation({
-    mutationFn: (by: string) =>
-      api(`${process.env.NEXT_PUBLIC_API_URL}/battle/attack`, {
+  const testFn = ({ by, type }: { by: string; type: string }) => {
+    if (type == "SWITCH") {
+      return api(`${process.env.NEXT_PUBLIC_API_URL}/battle/switch`, {
         method: "POST",
         data: {
           id: battle.id,
           by: by,
-          type: "ATTACK",
+          type: type,
           from:
-            by == "ATTACKER"
-              ? battle.activeAttackerPokemon
-              : battle.activeDefenderPokemon,
+            by == "ATTACKER" ? activeAttackerPokemon : activeDefenderPokemon,
           to:
             by == "ATTACKER"
-              ? battle.activeDefenderPokemon
-              : battle.activeAttackerPokemon,
+              ? attackerTeam[
+                  attackerTeam.findIndex(
+                    (elm) => elm.id == activeAttackerPokemon.id
+                  ) + 1
+                ]
+              : defenderTeam[
+                  defenderTeam.findIndex(
+                    (elm) => elm.id == activeDefenderPokemon.id
+                  ) + 1
+                ],
         },
         credential: true,
-      }),
+      });
+    } else {
+      return api(`${process.env.NEXT_PUBLIC_API_URL}/battle/attack`, {
+        method: "POST",
+        data: {
+          id: battle.id,
+          by: by,
+          type: type,
+          from:
+            by == "ATTACKER" ? activeAttackerPokemon : activeDefenderPokemon,
+          to: by == "ATTACKER" ? activeDefenderPokemon : activeAttackerPokemon,
+        },
+        credential: true,
+      });
+    }
+  };
+
+  const move = useMutation({
+    mutationFn: ({ by, type }: { by: string; type: string }) =>
+      testFn({ by, type }),
     onSuccess: (data) => {
       console.log(data);
       setActiveAttackerPokemon(data.activeAttackerPokemon);
       setAttackerTeam(data.attackerTeam);
       setActiveDefenderPokemon(data.activeDefenderPokemon);
+      setDefenderTeam(data.defenderTeam);
     },
   });
 
-  // const switchPoke = useMutation({
-  //   mutationFn: (by: string) =>
-  //     api(`${process.env.NEXT_PUBLIC_API_URL}/battle/switch`, {
-  //       method: "POST",
-  //       data: {
-  //         id: battle.id,
-  //         by: by,
-  //         type: "SWITCH",
-  //         from:
-  //           by == "ATTACKER"
-  //             ? battle.activeAttackerPokemon
-  //             : battle.activeDefenderPokemon,
-  //         to:
-  //           by == "ATTACKER"
-  //             ? battle.activeDefenderPokemon
-  //             : battle.activeAttackerPokemon,
-  //       },
-  //       credential: true,
-  //     }),
-  //   onSuccess: (data) => {
-  //     console.log(data);
-  //     setActiveAttackerPokemon(data.activeAttackerPokemon);
-  //     setActiveDefenderPokemon(data.activeDefenderPokemon);
-  //   },
-  // });
-
   const attackFn = (by: string) => {
-    animateDialog(by).then(() => {
-      attack.mutate(by);
-    });
-  };
-
-  const animateDialog = (by: string) => {
     const isAttacker = by === "ATTACKER";
     const dialogText = `${
       isAttacker ? activeAttackerPokemon.name : activeDefenderPokemon.name
     } de ${
       isAttacker ? battle.attacker.username : battle.defender.username
     } attaque`;
+    animateDialog(by, dialogText).then(() => {
+      move.mutate({ by: by, type: "ATTACK" });
+    });
+  };
 
+  const switchFn = (by: string) => {
+    const isAttacker = by === "ATTACKER";
+
+    const dialogText = `${
+      isAttacker ? activeAttackerPokemon.name : activeDefenderPokemon.name
+    } de ${
+      isAttacker ? battle.attacker.username : battle.defender.username
+    } est mort au combat`;
+
+    const dialogText2 = `${
+      isAttacker ? attackerTeam[1].name : defenderTeam[1].name
+    } entre au combat`;
+    animateDialog(by, dialogText).then(() => {
+      animateDialog(by, dialogText2).then(() => {
+        move.mutate({ by: by, type: "SWITCH" });
+      });
+    });
+  };
+
+  const animateDialog = (by: string, dialog: string) => {
     setDialog("");
 
     return new Promise<void>((resolve) => {
       const startAnimation = () => {
         const interval = setInterval(() => {
           setDialog((prev) => {
-            if (prev === dialogText) {
+            if (prev === dialog) {
               clearInterval(interval);
               resolve();
-              return dialogText;
+              return dialog;
             }
-            return dialogText.slice(0, prev.length + 1);
+            return dialog.slice(0, prev.length + 1);
           });
         }, 70);
       };
@@ -122,7 +142,11 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
       </div>
       <div className="h-3/4 flex p-8">
         <FightBox pokemon={activeAttackerPokemon} isAttack />
-        <FightBox pokemon={activeDefenderPokemon} onAttack={attackFn} />
+        <FightBox
+          pokemon={activeDefenderPokemon}
+          onAttack={attackFn}
+          onSwitch={switchFn}
+        />
       </div>
       <FightFooter
         onAttack={attackFn}

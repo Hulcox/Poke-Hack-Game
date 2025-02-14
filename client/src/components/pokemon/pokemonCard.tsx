@@ -95,7 +95,13 @@ const PokemonCard = ({
       </div>
       <div className="flex py-4 h-[150px] justify-between">
         {img ? (
-          <Image src={img} alt={name} width={100} height={100} />
+          <Image
+            src={img}
+            alt={name}
+            width={100}
+            height={100}
+            unoptimized={true}
+          />
         ) : (
           <h4>No Image</h4>
         )}

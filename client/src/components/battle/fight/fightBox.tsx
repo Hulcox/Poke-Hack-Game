@@ -8,17 +8,17 @@ import PokemonWithBase from "./pokemonWithBase";
 interface FightBoxProps {
   pokemon: PokemonFormSchema;
   isAttack?: boolean;
+  onSwitch?: (by: string) => void;
   onAttack?: (by: string) => void;
 }
 
-const FightBox = ({ pokemon, isAttack, onAttack }: FightBoxProps) => {
+const FightBox = ({ pokemon, isAttack, onSwitch, onAttack }: FightBoxProps) => {
   const [displayHp, setDisplayHp] = useState(pokemon.hp);
 
   const animateHpDecrease = (targetHp: number) => {
     return new Promise<void>((resolve) => {
       const interval = setInterval(() => {
         setDisplayHp((prev) => {
-          console.log("-1");
           if (prev <= targetHp) {
             clearInterval(interval);
             resolve();
@@ -34,13 +34,16 @@ const FightBox = ({ pokemon, isAttack, onAttack }: FightBoxProps) => {
     if (displayHp > pokemon.hp) {
       animateHpDecrease(pokemon.hp).then(() => {
         console.log("Mise à jour terminée !");
-        if (pokemon.hp === 0) {
+        if (pokemon.hp === 0 && !isAttack && onSwitch) {
           console.log("pokemon is dead");
+          onSwitch("DEFENDER");
         } else if (pokemon.hp >= 0 && !isAttack && onAttack) {
           console.log("attacker suivante");
           onAttack("DEFENDER");
         }
       });
+    } else {
+      setDisplayHp(pokemon.hp);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pokemon.hp]);

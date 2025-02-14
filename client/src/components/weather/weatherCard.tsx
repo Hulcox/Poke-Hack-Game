@@ -10,6 +10,7 @@ import WeatherInfluence from "./weatherInfluence";
 import WeatherLoc from "./weatherLoc";
 import WeatherName from "./weatherName";
 import WeatherTemp from "./weatherTemp";
+import WeatherWind from "./weatherWind";
 
 const WeatherCard = () => {
   const { location, errorGeoloc, loadingGeoloc, getLocalisation } =
@@ -31,7 +32,7 @@ const WeatherCard = () => {
           <WeatherLoc weather={weather} />
           <WeatherDayNight weather={weather} />
           <WeatherTemp weather={weather} />
-
+          <WeatherWind weather={weather} />
           <WeatherInfluence weather={weather} />
         </div>
       )}

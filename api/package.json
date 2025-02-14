@@ -5,7 +5,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.4.0",

@@ -8,5 +8,7 @@ done
 echo "PostgreSQL est disponible, lancement des migrations..."
 npx prisma migrate deploy
 
+npx prisma db seed
+
 echo "Démarrage de l'API..."
 npm run dev
