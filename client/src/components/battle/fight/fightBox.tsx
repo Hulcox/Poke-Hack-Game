@@ -1,65 +1,75 @@
+import { useAnimateHp } from "@/hooks/useAnimation";
 import { PokemonFormSchema } from "@/lib/types";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import HpBar from "./hpBar";
 import PokemonWithBase from "./pokemonWithBase";
 
 interface FightBoxProps {
   pokemon: PokemonFormSchema;
-  isAttack?: boolean;
-  onSwitch?: (by: string) => void;
-  onAttack?: (by: string) => void;
+  isAttacker?: boolean;
+  isAttackerTurn: boolean;
+  onSwitch?: () => void;
+  onAttack: () => void;
+  openPokemonMenu: () => void;
 }
 
-const FightBox = ({ pokemon, isAttack, onSwitch, onAttack }: FightBoxProps) => {
-  const [displayHp, setDisplayHp] = useState(pokemon.hp);
-
-  const animateHpDecrease = (targetHp: number) => {
-    return new Promise<void>((resolve) => {
-      const interval = setInterval(() => {
-        setDisplayHp((prev) => {
-          if (prev <= targetHp) {
-            clearInterval(interval);
-            resolve();
-            return targetHp;
-          }
-          return prev - 1;
-        });
-      }, 50);
-    });
-  };
+const FightBox = ({
+  pokemon,
+  isAttacker,
+  isAttackerTurn,
+  onSwitch,
+  onAttack,
+  openPokemonMenu,
+}: FightBoxProps) => {
+  const { displayHp, animateHpDecrease, setDisplayHp } = useAnimateHp(
+    pokemon.hp
+  );
 
   useEffect(() => {
     if (displayHp > pokemon.hp) {
       animateHpDecrease(pokemon.hp).then(() => {
         console.log("Mise à jour terminée !");
-        if (pokemon.hp === 0 && !isAttack && onSwitch) {
+        if (pokemon.hp === 0) {
           console.log("pokemon is dead");
-          onSwitch("DEFENDER");
-        } else if (pokemon.hp >= 0 && !isAttack && onAttack) {
+          if (!isAttacker && onSwitch) {
+            onSwitch();
+          } else {
+            openPokemonMenu();
+          }
+        } else if (pokemon.hp >= 0 && !isAttacker) {
           console.log("attacker suivante");
-          onAttack("DEFENDER");
+          onAttack();
         }
       });
-    } else {
-      setDisplayHp(pokemon.hp);
+    } else if (!isAttacker && displayHp == 0) {
+      onAttack();
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pokemon.hp]);
+
+  useEffect(() => {
+    setDisplayHp(pokemon.hp);
+    if (isAttacker && !isAttackerTurn) {
+      onAttack();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pokemon.name]);
 
   return (
     <div
       className={twMerge(
         clsx(
           "relative h-full w-1/2  flex flex-col justify-end items-center",
-          !isAttack && "h-[80%]"
+          !isAttacker && "h-[80%]"
         )
       )}
     >
       <HpBar hp={displayHp} hp_base={pokemon.hp_base} name={pokemon.name} />
       <PokemonWithBase
-        img={isAttack ? pokemon.img_back : pokemon.img}
+        img={isAttacker ? pokemon.img_back : pokemon.img}
         name={pokemon.name}
       />
     </div>

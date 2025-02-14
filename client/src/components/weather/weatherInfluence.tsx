@@ -11,13 +11,7 @@ const WeatherInfluence = ({ weather }: { weather: Weather }) => {
       <div>
         <p className="text-xs text-success">Strengthened type</p>
         <div className="pt-4 flex flex-wrap gap-4">
-          {typeStrengthByWeather(
-            weather.weather[0].main,
-            weather.main.temp,
-            weather.wind.speed,
-            weather.sys.sunset,
-            weather.sys.sunrise
-          ).map((type, key) => (
+          {typeStrengthByWeather(weather).map((type, key) => (
             <TypeBadge key={key} type={type} />
           ))}
         </div>
@@ -26,13 +20,7 @@ const WeatherInfluence = ({ weather }: { weather: Weather }) => {
       <div>
         <p className="text-xs text-error">Weakened type</p>
         <div className="pt-4 flex flex-wrap gap-4">
-          {typeWeaknessesByWeather(
-            weather.weather[0].main,
-            weather.main.temp,
-            weather.wind.speed,
-            weather.sys.sunset,
-            weather.sys.sunrise
-          ).map((type, key) => (
+          {typeWeaknessesByWeather(weather).map((type, key) => (
             <TypeBadge key={key} type={type} />
           ))}
         </div>

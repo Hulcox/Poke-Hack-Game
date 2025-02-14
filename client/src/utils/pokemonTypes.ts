@@ -1,3 +1,4 @@
+import { Weather } from "@/lib/types";
 import { DateTime } from "luxon";
 
 interface Type {
@@ -89,13 +90,13 @@ export const isNight = (sunrise: number, sunset: number) => {
   return now < sunriseTime || now > sunsetTime;
 };
 
-export const typeWeaknessesByWeather = (
-  weather: string,
-  temp: number,
-  wind: number,
-  sunset: number,
-  sunrise: number
-) => {
+export const typeWeaknessesByWeather = (weatherData: Weather) => {
+  const weather = weatherData.weather[0].main;
+  const temp = weatherData.main.temp;
+  const wind = weatherData.wind.speed;
+  const sunset = weatherData.sys.sunset;
+  const sunrise = weatherData.sys.sunrise;
+
   const weaknesses = WEATHER_TYPE_WEAKNESSES[weather];
   const arr = [weaknesses];
 
@@ -115,13 +116,13 @@ export const typeWeaknessesByWeather = (
   return arr;
 };
 
-export const typeStrengthByWeather = (
-  weather: string,
-  temp: number,
-  wind: number,
-  sunset: number,
-  sunrise: number
-) => {
+export const typeStrengthByWeather = (weatherData: Weather) => {
+  const weather = weatherData.weather[0].main;
+  const temp = weatherData.main.temp;
+  const wind = weatherData.wind.speed;
+  const sunset = weatherData.sys.sunset;
+  const sunrise = weatherData.sys.sunrise;
+
   const weaknesses = WEATHER_TYPE_STRENGTH[weather];
   const arr = [weaknesses];
 
