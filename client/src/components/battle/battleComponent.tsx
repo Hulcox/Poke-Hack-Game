@@ -1,6 +1,7 @@
 import { useAnimateDialog } from "@/hooks/useAnimation";
 import { Battle, PokemonFormSchema, Weather } from "@/lib/types";
 import { api } from "@/utils/api";
+import { dialogTemplates } from "@/utils/dialog";
 import {
   typeStrengthByWeather,
   typeWeaknessesByWeather,
@@ -8,6 +9,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import WeatherBadge from "../weather/weatherBadge";
+import BattleEndMenu from "./battleEndMenu";
 import FightBox from "./fight/fightBox";
 import FightFooter from "./fight/fightFooter";
 import PokemonMenu from "./fight/pokemonMenu";
@@ -17,33 +19,31 @@ interface BattleComponentProps {
   weather: Weather;
 }
 
-const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
-  const [currentTurn, setCurrentTurn] = useState("ATTACKER");
-  const [attackerTeam, setAttackerTeam] = useState(battle.attackerTeam);
-  const [defenderTeam, setDefenderTeam] = useState(battle.defenderTeam);
-  const [strengthType] = useState(typeStrengthByWeather(weather));
-  const [weakType] = useState(typeWeaknessesByWeather(weather));
+const pokemonModalId = "pokemonMenu";
+const battleEndId = "battleEnd";
 
-  const [activeAttackerPokemon, setActiveAttackerPokemon] = useState(
-    battle.activeAttackerPokemon
-  );
-  const [activeDefenderPokemon, setActiveDefenderPokemon] = useState(
-    battle.activeDefenderPokemon
+const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
+  const [state, setState] = useState({
+    currentTurn: "ATTACKER",
+    attackerTeam: battle.attackerTeam,
+    defenderTeam: battle.defenderTeam,
+    activeAttackerPokemon: battle.activeAttackerPokemon,
+    activeDefenderPokemon: battle.activeDefenderPokemon,
+  });
+  const [winner, setWinner] = useState("");
+
+  const { dialog, animateDialog } = useAnimateDialog(
+    dialogTemplates.attackerTurn(
+      state.activeAttackerPokemon.name,
+      battle.attacker.username
+    )
   );
 
   const openPokemonMenu = () => {
-    (document.getElementById("pokemonMenu") as HTMLDialogElement)?.showModal();
+    (document.getElementById(pokemonModalId) as HTMLDialogElement)?.showModal();
   };
-
-  const { dialog, animateDialog } = useAnimateDialog(
-    `C'est au tour de ${activeAttackerPokemon.name} de  ${battle.attacker.username} d'attaquer !!`
-  );
-
-  const getNextPokemon = (
-    team: PokemonFormSchema[],
-    activePokemon: PokemonFormSchema
-  ) => {
-    return team[team.findIndex((elm) => elm.id == activePokemon.id) + 1];
+  const openBattleEndMenu = () => {
+    (document.getElementById(battleEndId) as HTMLDialogElement)?.showModal();
   };
 
   const move = useMutation({
@@ -62,30 +62,36 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         method: "POST",
         data: {
           id: battle.id,
-          by: by,
-          type: type,
-          from: from,
-          to: to,
-          strengthType: strengthType,
-          weakType: weakType,
+          by,
+          type,
+          from,
+          to,
+          strengthType: typeStrengthByWeather(weather),
+          weakType: typeWeaknessesByWeather(weather),
         },
         credential: true,
       }),
     onSuccess: async (data) => {
-      console.log(data);
+      if (data.winner) {
+        setWinner(data.winner);
+        openBattleEndMenu();
+        return;
+      }
 
       if (data.valueEfficaity) {
         await animateDialog(
-          currentTurn,
-          `L'attaque est ${data.valueEfficaity}`
+          state.currentTurn,
+          `The Attack is ${data.valueEfficaity}`
         );
       }
 
-      setActiveAttackerPokemon(data.activeAttackerPokemon);
-      setAttackerTeam(data.attackerTeam);
-      setActiveDefenderPokemon(data.activeDefenderPokemon);
-      setDefenderTeam(data.defenderTeam);
-      setCurrentTurn(data.currentTurn);
+      setState({
+        currentTurn: data.currentTurn,
+        attackerTeam: data.attackerTeam,
+        defenderTeam: data.defenderTeam,
+        activeAttackerPokemon: data.activeAttackerPokemon,
+        activeDefenderPokemon: data.activeDefenderPokemon,
+      });
     },
   });
 
@@ -95,22 +101,17 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     to: PokemonFormSchema
   ) => {
     const isAttacker = by === "ATTACKER";
-
-    const dialogText = `${
-      isAttacker ? activeAttackerPokemon.name : activeDefenderPokemon.name
-    } de ${
-      isAttacker ? battle.attacker.username : battle.defender.username
-    } attaque`;
-
-    if (isAttacker && from.hp == 0) {
-      const text = "Ton pokemon est mort il faut que tu change de pokemon.";
-      return animateDialog(by, text).then(() => {
-        openPokemonMenu();
-      });
+    if (isAttacker && from.hp === 0) {
+      return animateDialog(by, dialogTemplates.fainted).then(openPokemonMenu);
     }
-
-    animateDialog(by, dialogText).then(() => {
-      move.mutate({ by: by, type: "ATTACK", from, to });
+    animateDialog(
+      by,
+      dialogTemplates.attack(
+        from.name,
+        isAttacker ? battle.attacker.username : battle.defender.username
+      )
+    ).then(() => {
+      move.mutate({ by, type: "ATTACK", from, to });
     });
   };
 
@@ -120,27 +121,17 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     to: PokemonFormSchema
   ) => {
     const isAttacker = by === "ATTACKER";
-
-    let text = "";
-
-    if (from.hp == 0) {
-      text = `${from.name} de ${
-        isAttacker ? battle.attacker.username : battle.defender.username
-      } est KO !`;
-    } else {
-      text = `${from.name} laisse ça place à ${to.name}`;
-    }
+    const text =
+      from.hp === 0
+        ? dialogTemplates.ko(
+            from.name,
+            isAttacker ? battle.attacker.username : battle.defender.username
+          )
+        : dialogTemplates.switch(from.name, to.name);
 
     animateDialog(by, text).then(() => {
-      const text = `${to.name} entre au combat`;
-
-      animateDialog(by, text).then(() => {
-        move.mutate({
-          by: by,
-          type: "SWITCH",
-          from: from,
-          to: to,
-        });
+      animateDialog(by, dialogTemplates.enterBattle(to.name)).then(() => {
+        move.mutate({ by, type: "SWITCH", from, to });
       });
     });
   };
@@ -152,25 +143,35 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
       </div>
       <div className="h-3/4 flex p-8">
         <FightBox
-          pokemon={activeAttackerPokemon}
+          pokemon={state.activeAttackerPokemon}
           isAttacker
-          isAttackerTurn={currentTurn === "ATTACKER"}
+          isAttackerTurn={state.currentTurn === "ATTACKER"}
           onAttack={() =>
-            attackFn("DEFENDER", activeDefenderPokemon, activeAttackerPokemon)
+            attackFn(
+              "DEFENDER",
+              state.activeDefenderPokemon,
+              state.activeAttackerPokemon
+            )
           }
           openPokemonMenu={openPokemonMenu}
         />
         <FightBox
-          pokemon={activeDefenderPokemon}
+          pokemon={state.activeDefenderPokemon}
           onAttack={() =>
-            attackFn("DEFENDER", activeDefenderPokemon, activeAttackerPokemon)
+            attackFn(
+              "DEFENDER",
+              state.activeDefenderPokemon,
+              state.activeAttackerPokemon
+            )
           }
-          isAttackerTurn={currentTurn === "ATTACKER"}
+          isAttackerTurn={state.currentTurn === "ATTACKER"}
           onSwitch={() =>
             switchFn(
               "DEFENDER",
-              activeDefenderPokemon,
-              getNextPokemon(defenderTeam, activeDefenderPokemon)
+              state.activeDefenderPokemon,
+              state.defenderTeam.find(
+                (p) => p.id !== state.activeDefenderPokemon.id
+              )!
             )
           }
           openPokemonMenu={openPokemonMenu}
@@ -178,17 +179,23 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
       </div>
       <FightFooter
         onAttack={() =>
-          attackFn("ATTACKER", activeAttackerPokemon, activeDefenderPokemon)
+          attackFn(
+            "ATTACKER",
+            state.activeAttackerPokemon,
+            state.activeDefenderPokemon
+          )
         }
         dialog={dialog}
         openPokemonMenu={openPokemonMenu}
-        currentTrun={currentTurn === "ATTACKER"}
+        currentTrun={state.currentTurn === "ATTACKER"}
       />
       <PokemonMenu
-        pokemons={attackerTeam}
-        activePokemon={activeAttackerPokemon}
+        id={pokemonModalId}
+        pokemons={state.attackerTeam}
+        activePokemon={state.activeAttackerPokemon}
         onSwitch={switchFn}
       />
+      <BattleEndMenu id={battleEndId} win={winner === "ATTACKER"} />
     </div>
   );
 };

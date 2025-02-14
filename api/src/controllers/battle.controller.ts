@@ -1,10 +1,16 @@
 import { PrismaClient } from "@prisma/client";
+import type { InputJsonValue } from "@prisma/client/runtime/client.js";
 import type { Context } from "hono";
-import { getBattle, saveBattle } from "../services/battle.service.js";
-import type { AttackBattle, Move, StartBattle } from "../types/battle.types.js";
+import {
+  calculateAttack,
+  getBattle,
+  isTeamDefeated,
+  saveBattle,
+  updateTeamsAfterMove,
+} from "../services/battle.service.js";
+import type { Move, MoveBattle, StartBattle } from "../types/battle.types.js";
 import type { Pokemon } from "../types/team.types.js";
 import {
-  ERROR_INTERNAL_SERVER,
   ERROR_INVALID_REQUEST_BODY,
   STATUS_CODE_BAD_REQUEST,
   STATUS_CODE_INTERNAL_SERVER_ERROR,
@@ -15,7 +21,6 @@ const prisma = new PrismaClient();
 
 export class BattleController {
   static async getBattle(c: Context) {
-    //try {
     const { userId } = c.get("user");
     const id = Number(c.req.param("id"));
 
@@ -24,7 +29,7 @@ export class BattleController {
     }
 
     const battle = await prisma.battle.findFirst({
-      where: { id, attackerId: userId },
+      where: { id, attackerId: userId, status: "ONGOING" },
       include: {
         attacker: true,
         attackerTeam: true,
@@ -35,6 +40,12 @@ export class BattleController {
 
     if (!battle) {
       return c.json({ error: "Battle not found" }, STATUS_CODE_NOT_FOUND);
+    }
+
+    const battleCache = await getBattle(id);
+
+    if (battleCache) {
+      return c.json({ ...battle, ...battleCache });
     }
 
     const attackerTeam = battle.attackerTeam?.pokemons as unknown as Pokemon[];
@@ -64,59 +75,45 @@ export class BattleController {
       activeAttackerPokemon,
       activeDefenderPokemon,
     });
-    // } catch (error) {
-    //   return c.json(
-    //     { error: ERROR_INTERNAL_SERVER },
-    //     STATUS_CODE_INTERNAL_SERVER_ERROR
-    //   );
-    // }
   }
 
   static async startBattle(c: Context) {
-    try {
-      const { userId } = c.get("user");
-      const { attackerTeamId, defenderTeamId } =
-        await c.req.json<StartBattle>();
+    const { userId } = c.get("user");
+    const { attackerTeamId, defenderTeamId } = await c.req.json<StartBattle>();
 
-      if (!attackerTeamId || !defenderTeamId) {
-        return c.json(
-          { error: ERROR_INVALID_REQUEST_BODY },
-          STATUS_CODE_BAD_REQUEST
-        );
-      }
-
-      const defender = await prisma.team.findUnique({
-        where: { id: defenderTeamId },
-      });
-
-      if (!defender) {
-        return c.json(
-          { error: "Defender team not found" },
-          STATUS_CODE_NOT_FOUND
-        );
-      }
-
-      const battle = await prisma.battle.create({
-        data: {
-          attackerId: userId,
-          attackerTeamId,
-          defenderId: defender.userId,
-          defenderTeamId: defender.id,
-        },
-      });
-
-      return c.json(battle);
-    } catch (error) {
+    if (!attackerTeamId || !defenderTeamId) {
       return c.json(
-        { error: ERROR_INTERNAL_SERVER },
-        STATUS_CODE_INTERNAL_SERVER_ERROR
+        { error: ERROR_INVALID_REQUEST_BODY },
+        STATUS_CODE_BAD_REQUEST
       );
     }
+
+    const defender = await prisma.team.findUnique({
+      where: { id: defenderTeamId },
+    });
+
+    if (!defender) {
+      return c.json(
+        { error: "Defender team not found" },
+        STATUS_CODE_NOT_FOUND
+      );
+    }
+
+    const battle = await prisma.battle.create({
+      data: {
+        attackerId: userId,
+        attackerTeamId,
+        defenderId: defender.userId,
+        defenderTeamId: defender.id,
+      },
+    });
+
+    return c.json(battle);
   }
 
   static async attackBattle(c: Context) {
-    //try {
-    const { id, by, type, from, to } = await c.req.json<AttackBattle>();
+    const { id, by, type, from, to, strengthType, weakType } =
+      await c.req.json<MoveBattle>();
 
     if (!id || !by || !type || !from || !to) {
       return c.json(
@@ -133,75 +130,41 @@ export class BattleController {
       );
     }
 
-    const move = {
+    if (
+      isTeamDefeated(battleCache.attackerTeam) ||
+      isTeamDefeated(battleCache.defenderTeam)
+    ) {
+      return c.json({
+        winner: isTeamDefeated(battleCache.attackerTeam)
+          ? "DEFENDER"
+          : "ATTACKER",
+      });
+    }
+
+    const [attackValue, attackEfficacy] = calculateAttack(
+      strengthType,
+      weakType,
+      from,
+      to
+    );
+    const move: Move = {
       by,
-      type,
+      type: type as "ATTACK" | "SWITCH",
       from: from.id,
       to: to.id,
-      value: from.attack,
-    } as Move;
+      value: attackValue,
+    };
 
-    const battle = await prisma.battle.update({
-      where: { id },
-      data: {
-        movesHistory: {
-          push: {
-            by,
-            type,
-            from: from.id,
-            to: to.id,
-            value: from.attack,
-          },
-        },
-      },
-    });
+    const updatedTeams = updateTeamsAfterMove(battleCache, move);
+    const updatedBattle = updateBattle(id, move);
 
-    let attackerTeam: Pokemon[] = [];
-    let defenderTeam: Pokemon[] = [];
+    await saveBattle(id, updatedTeams);
 
-    if (by == "DEFENDER") {
-      attackerTeam = applyMove(battleCache.attackerTeam, move);
-      defenderTeam = battleCache.defenderTeam;
-    }
-    if (by == "ATTACKER") {
-      attackerTeam = battleCache.attackerTeam;
-      defenderTeam = applyMove(battleCache.defenderTeam, move);
-    }
-
-    const activeAttackerPokemon = attackerTeam.find(
-      (pokemon: Pokemon) => pokemon.id == battleCache.activeAttackerPokemon.id
-    );
-    const activeDefenderPokemon = defenderTeam.find(
-      (pokemon: Pokemon) => pokemon.id == battleCache.activeDefenderPokemon.id
-    );
-
-    if (activeAttackerPokemon && activeDefenderPokemon)
-      await saveBattle(id, {
-        attackerTeam,
-        defenderTeam,
-        activeAttackerPokemon,
-        activeDefenderPokemon,
-      });
-
-    return c.json({
-      ...battle,
-      attackerTeam,
-      defenderTeam,
-      activeAttackerPokemon,
-      activeDefenderPokemon,
-    });
-
-    // } catch (error) {
-    //   return c.json(
-    //     { error: ERROR_INTERNAL_SERVER },
-    //     STATUS_CODE_INTERNAL_SERVER_ERROR
-    //   );
-    // }
+    return c.json({ ...updatedBattle, attackEfficacy, ...updatedTeams });
   }
 
   static async switchBattle(c: Context) {
-    //try {
-    const { id, by, type, from, to } = await c.req.json<AttackBattle>();
+    const { id, by, type, from, to } = await c.req.json<MoveBattle>();
 
     if (!id || !by || !type || !from || !to) {
       return c.json(
@@ -218,70 +181,37 @@ export class BattleController {
       );
     }
 
-    const battle = await prisma.battle.update({
-      where: { id },
-      data: {
-        movesHistory: {
-          push: {
-            by,
-            type,
-            from: from.id,
-            to: to.id,
-            value: null,
-          },
-        },
-      },
-    });
+    const move: Move = {
+      by,
+      type: type as "ATTACK" | "SWITCH",
+      from: from.id,
+      to: to.id,
+      value: 0,
+    };
 
-    const activeAttackerPokemon = battleCache.attackerTeam.find(
-      (pokemon: Pokemon) => pokemon.id == to.id
-    );
-    const activeDefenderPokemon = battleCache.defenderTeam.find(
-      (pokemon: Pokemon) => pokemon.id == to.id
-    );
-
-    console.log(activeDefenderPokemon);
+    const battle = updateBattle(id, move);
 
     const savedData = {
       attackerTeam: battleCache.attackerTeam,
       defenderTeam: battleCache.defenderTeam,
       activeAttackerPokemon:
-        by == "ATTACKER"
-          ? activeAttackerPokemon
-          : battleCache.activeAttackerPokemon,
+        by === "ATTACKER" ? to : battleCache.activeAttackerPokemon,
       activeDefenderPokemon:
-        by == "DEFENDER"
-          ? activeDefenderPokemon
-          : battleCache.activeDefenderPokemon,
+        by === "DEFENDER" ? to : battleCache.activeDefenderPokemon,
     };
 
     await saveBattle(id, savedData);
 
     return c.json({
       ...battle,
+      currentTurn: from.hp == 0 ? "ATTACKER" : "DEFENDER",
       ...savedData,
     });
-
-    // } catch (error) {
-    //   return c.json(
-    //     { error: ERROR_INTERNAL_SERVER },
-    //     STATUS_CODE_INTERNAL_SERVER_ERROR
-    //   );
-    // }
   }
 }
-
-const applyMove = (pokemon: Pokemon[], lastMove?: Move): Pokemon[] => {
-  return pokemon.map((pokemon) => {
-    if (!lastMove) return pokemon;
-
-    if (pokemon.id === lastMove.to) {
-      return {
-        ...pokemon,
-        hp: Math.max(0, pokemon.hp - lastMove.value),
-      };
-    }
-
-    return pokemon;
+const updateBattle = async (id: number, move: Move) => {
+  return await prisma.battle.update({
+    where: { id },
+    data: { movesHistory: { push: move as unknown as InputJsonValue[] } },
   });
 };

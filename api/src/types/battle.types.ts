@@ -11,20 +11,22 @@ export interface StartBattle {
   attackerTeamId: number;
   defenderTeamId: number;
 }
-export interface AttackBattle {
+export interface MoveBattle {
   id: number;
   by: string;
   type: string;
   from: Pokemon;
   to: Pokemon;
+  strengthType: string[];
+  weakType: string[];
 }
 
 export interface Move {
-  by: "ATTACKER" | "DEFENDER";
+  by: string;
   type: "ATTACK" | "SWITCH";
   from: number;
   to: number;
-  value: 0;
+  value: number;
 }
 
 export interface Team {

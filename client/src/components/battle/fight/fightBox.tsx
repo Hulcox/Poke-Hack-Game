@@ -17,7 +17,7 @@ interface FightBoxProps {
 
 const FightBox = ({
   pokemon,
-  isAttacker,
+  isAttacker = false,
   isAttackerTurn,
   onSwitch,
   onAttack,
@@ -30,23 +30,20 @@ const FightBox = ({
   useEffect(() => {
     if (displayHp > pokemon.hp) {
       animateHpDecrease(pokemon.hp).then(() => {
-        console.log("Mise à jour terminée !");
         if (pokemon.hp === 0) {
-          console.log("pokemon is dead");
-          if (!isAttacker && onSwitch) {
-            onSwitch();
-          } else {
+          if (isAttacker) {
             openPokemonMenu();
+          } else if (onSwitch) {
+            onSwitch();
           }
-        } else if (pokemon.hp >= 0 && !isAttacker) {
-          console.log("attacker suivante");
+        } else if (!isAttacker) {
+          console.log("Attaquant suivant");
           onAttack();
         }
       });
-    } else if (!isAttacker && displayHp == 0) {
+    } else if (!isAttacker && displayHp === 0) {
       onAttack();
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pokemon.hp]);
 
@@ -62,7 +59,7 @@ const FightBox = ({
     <div
       className={twMerge(
         clsx(
-          "relative h-full w-1/2  flex flex-col justify-end items-center",
+          "relative h-full w-1/2 flex flex-col justify-end items-center",
           !isAttacker && "h-[80%]"
         )
       )}

@@ -32,7 +32,9 @@ const FightFooter = ({
             Pokemon
           </button>
         </div>
-        <button className="btn btn-neutral w-full">Give Up</button>
+        <button className="btn btn-neutral w-full" disabled>
+          Give Up
+        </button>
       </div>
     </div>
   );
