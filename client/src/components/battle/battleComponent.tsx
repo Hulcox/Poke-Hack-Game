@@ -136,6 +136,13 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     });
   };
 
+  const getNextPokemon = (
+    team: PokemonFormSchema[],
+    active: PokemonFormSchema
+  ) => {
+    return team[team.findIndex((elm) => elm.id == active.id) + 1];
+  };
+
   return (
     <div className="flex-1 h-full flex flex-col justify-between ">
       <div className="fixed top-5 left-5">
@@ -169,9 +176,7 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
             switchFn(
               "DEFENDER",
               state.activeDefenderPokemon,
-              state.defenderTeam.find(
-                (p) => p.id !== state.activeDefenderPokemon.id
-              )!
+              getNextPokemon(state.defenderTeam, state.activeDefenderPokemon)
             )
           }
           openPokemonMenu={openPokemonMenu}

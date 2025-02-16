@@ -17,11 +17,11 @@ export const useAnimateDialog = (startDialog: string) => {
             }
             return text.slice(0, prev.length + 1);
           });
-        }, 70);
+        }, 30);
       };
 
       if (by === "DEFENDER") {
-        setTimeout(startAnimation, 2000);
+        setTimeout(startAnimation, 1000);
       } else {
         startAnimation();
       }

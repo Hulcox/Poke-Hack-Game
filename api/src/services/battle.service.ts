@@ -13,6 +13,10 @@ export const getBattle = async (id: number) => {
   return battle ? JSON.parse(battle) : null;
 };
 
+export const deleteBattle = async (id: number) => {
+  await redis.unlink(`battle:${id}`);
+};
+
 export const updateTeamsAfterMove = (
   battleCache: Battle,
   move: Move

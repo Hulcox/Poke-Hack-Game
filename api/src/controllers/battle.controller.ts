@@ -3,6 +3,7 @@ import type { InputJsonValue } from "@prisma/client/runtime/client.js";
 import type { Context } from "hono";
 import {
   calculateAttack,
+  deleteBattle,
   getBattle,
   isTeamDefeated,
   saveBattle,
@@ -130,17 +131,6 @@ export class BattleController {
       );
     }
 
-    if (
-      isTeamDefeated(battleCache.attackerTeam) ||
-      isTeamDefeated(battleCache.defenderTeam)
-    ) {
-      return c.json({
-        winner: isTeamDefeated(battleCache.attackerTeam)
-          ? "DEFENDER"
-          : "ATTACKER",
-      });
-    }
-
     const [attackValue, attackEfficacy] = calculateAttack(
       strengthType,
       weakType,
@@ -160,7 +150,32 @@ export class BattleController {
 
     await saveBattle(id, updatedTeams);
 
-    return c.json({ ...updatedBattle, attackEfficacy, ...updatedTeams });
+    if (
+      isTeamDefeated(updatedTeams.attackerTeam) ||
+      isTeamDefeated(updatedTeams.defenderTeam)
+    ) {
+      const winner = isTeamDefeated(updatedTeams.attackerTeam)
+        ? "DEFENDER"
+        : "ATTACKER";
+
+      await prisma.battle.update({
+        where: { id },
+        data: { status: winner == "ATTACKER" ? "WIN" : "LOOSE" },
+      });
+
+      await deleteBattle(id);
+
+      return c.json({
+        winner: winner,
+      });
+    }
+
+    return c.json({
+      ...updatedBattle,
+      attackEfficacy,
+      ...updatedTeams,
+      currentTurn: by == "ATTACKER" ? "DEFENDER" : "ATTACKER",
+    });
   }
 
   static async switchBattle(c: Context) {
