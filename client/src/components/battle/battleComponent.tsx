@@ -32,7 +32,7 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     activeAttackerPokemon: battle.activeAttackerPokemon,
     activeDefenderPokemon: battle.activeDefenderPokemon,
   });
-  const [winner, setWinner] = useState("");
+  const [status, setStatus] = useState("");
   const [hack, setHack] = useState<Hack | null>(null);
 
   const { dialog, animateDialog } = useAnimateDialog(
@@ -81,8 +81,8 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         credential: true,
       }),
     onSuccess: async (data) => {
-      if (data.winner) {
-        setWinner(data.winner);
+      if (data.status) {
+        setStatus(data.status);
         openBattleEndMenu();
         return;
       }
@@ -93,11 +93,15 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         return;
       }
 
-      if (data.valueEfficaity) {
+      if (data.attackEfficacy) {
         await animateDialog(
           battleState.currentTurn,
-          `The Attack is ${data.valueEfficaity}`
+          `The Attack is ${data.attackEfficacy}`
         );
+      }
+
+      if (data.hackMessage) {
+        await animateDialog(battleState.currentTurn, data.hackMessage);
       }
 
       setBattleState({
@@ -228,7 +232,7 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         activePokemon={battleState.activeAttackerPokemon}
         onSwitch={switchFn}
       />
-      <BattleEndMenu id={battleEndId} win={winner === "ATTACKER"} />
+      <BattleEndMenu id={battleEndId} win={status == "WIN"} />
       <HackMenu id={hackMenu} hack={hack} onHack={onHack} />
     </div>
   );

@@ -169,7 +169,12 @@ export class BattleController {
 
     await saveBattle(id, updatedTeams);
 
-    await checkWin(c, updatedTeams, id);
+    const status = await checkWin(updatedTeams, id);
+    if (status) {
+      return c.json({
+        status: status,
+      });
+    }
 
     return c.json({
       ...updatedBattle,
@@ -256,6 +261,12 @@ export class BattleController {
       hpLost: isEasy ? 0 : hackDifficulty === "Difficile" ? 25 : 15,
     };
 
+    console.log(
+      move,
+      isEasy,
+      lostPokemons(battleCache.attackerTeam, move.lostPokemon, to)
+    );
+
     const updatedAttackerTeam = isEasy
       ? lostPokemons(battleCache.attackerTeam, move.lostPokemon, to)
       : battleCache.attackerTeam.map((pokemon: Pokemon) => ({
@@ -273,15 +284,21 @@ export class BattleController {
       activeDefenderPokemon: battleCache.activeDefenderPokemon,
     };
 
-    await checkWin(c, savedData, id);
+    const status = await checkWin(savedData, id);
+    if (status) {
+      return c.json({
+        status: status,
+      });
+    }
 
     const battle = await updateBattle(id, move);
     await saveBattle(id, savedData);
 
     return c.json({
       ...battle,
-      currentTurn: "DEFENDER",
+      currentTurn: "ATTACKER",
       ...savedData,
+      hackMessage: isEasy ? "You lost some pokemon" : "You lost some Hp",
     });
   }
 }

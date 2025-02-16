@@ -156,3 +156,11 @@ export interface Hack {
   type: string;
   difficulty: string;
 }
+
+export interface History {
+  type: string;
+  user: UserData;
+  status: string;
+  time: string;
+  isMe: boolean;
+}

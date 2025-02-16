@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import type { Context } from "hono";
 import { Redis } from "ioredis";
 import type { Battle, Move } from "../types/battle.types.js";
 import type { Pokemon } from "../types/team.types.js";
@@ -112,7 +111,7 @@ export const lostPokemons = (
   activePokemon: Pokemon
 ) => {
   const pokemonsAffected = team
-    .filter((pokemon) => pokemon.id == activePokemon.id && pokemon.hp != 0)
+    .filter((pokemon) => pokemon.id != activePokemon.id && pokemon.hp != 0)
     .map((pokemon, index) => {
       const isLost = index < lostCount;
       return { ...pokemon, hp: isLost ? 0 : pokemon.hp };
@@ -126,21 +125,20 @@ export const lostPokemons = (
   });
 };
 
-export const checkWin = async (c: Context, team: Battle, id: number) => {
+export const checkWin = async (team: Battle, id: number) => {
   if (isTeamDefeated(team.attackerTeam) || isTeamDefeated(team.defenderTeam)) {
     const winner = isTeamDefeated(team.attackerTeam) ? "DEFENDER" : "ATTACKER";
 
+    const battleStatus = winner == "ATTACKER" ? "WIN" : "LOOSE";
+
     await prisma.battle.update({
       where: { id },
-      data: { status: winner == "ATTACKER" ? "WIN" : "LOOSE" },
+      data: { status: battleStatus },
     });
 
     await deleteBattle(id);
-
-    return c.json({
-      winner: winner,
-    });
+    return battleStatus;
   } else {
-    return;
+    return false;
   }
 };

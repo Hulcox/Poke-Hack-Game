@@ -63,13 +63,12 @@ const NavBar = () => {
           pathname={pathname}
           icon={<SmilePlus className="mr-2" />}
         />
-
-        <li>
-          <a>
-            <Archive className="mr-2" />
-            History
-          </a>
-        </li>
+        <NavItem
+          title="History"
+          path="/history"
+          pathname={pathname}
+          icon={<Archive className="mr-2" />}
+        />
         <li>
           <a>
             {" "}

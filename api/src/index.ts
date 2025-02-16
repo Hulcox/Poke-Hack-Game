@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.route.js";
 import battleRouter from "./routes/battle.route.js";
 import friendRouter from "./routes/friends.route.js";
 import hackRouter from "./routes/hack.route.js";
+import historyRouter from "./routes/history.route.js";
 import teamRouter from "./routes/team.route.js";
 import userRouter from "./routes/user.route.js";
 import weatherRoute from "./routes/weather.route.js";
@@ -28,6 +29,7 @@ app.route("/api/friend", friendRouter);
 app.route("/api/weather", weatherRoute);
 app.route("/api/battle", battleRouter);
 app.route("/api/hack", hackRouter);
+app.route("/api/history", historyRouter);
 
 app.onError((err, c) => {
   console.log("Erreur", err);
