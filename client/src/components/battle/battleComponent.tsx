@@ -233,7 +233,18 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         onSwitch={switchFn}
       />
       <BattleEndMenu id={battleEndId} win={status == "WIN"} />
-      <HackMenu id={hackMenu} hack={hack} onHack={onHack} />
+      <HackMenu
+        id={hackMenu}
+        hack={hack}
+        onHack={onHack}
+        onAttack={() =>
+          attackFn(
+            "ATTACKER",
+            battleState.activeAttackerPokemon,
+            battleState.activeDefenderPokemon
+          )
+        }
+      />
     </div>
   );
 };

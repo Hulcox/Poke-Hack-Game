@@ -27,9 +27,11 @@ export const api = async (
 
   const response = await fetch(url, fetchOptions);
 
+  const result = await response.json();
+
   if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+    throw new Error(result.error);
   }
 
-  return await response.json();
+  return await result;
 };

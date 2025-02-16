@@ -12,6 +12,7 @@ interface BattleEndMenuProps {
   hack: Hack | null;
   id: string;
   onHack: (difficulty: string) => void;
+  onAttack: () => void;
 }
 
 const schema = z.object({
@@ -20,7 +21,12 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
-export const HackMenu = ({ hack, id, onHack }: BattleEndMenuProps) => {
+export const HackMenu = ({
+  hack,
+  id,
+  onHack,
+  onAttack,
+}: BattleEndMenuProps) => {
   const {
     register,
     handleSubmit,
@@ -41,6 +47,7 @@ export const HackMenu = ({ hack, id, onHack }: BattleEndMenuProps) => {
     onSuccess: (data) => {
       console.log(data);
       if (data.success == true) {
+        onAttack();
         closeHackMenu();
         return;
       }
