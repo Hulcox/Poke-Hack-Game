@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type User } from "@prisma/client";
 import type { Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
@@ -88,6 +88,8 @@ export class AuthController {
         },
       });
 
+      await addBotFirend(user);
+
       return c.json(user);
     } catch (error) {
       return c.json(
@@ -112,5 +114,21 @@ export class AuthController {
     return c.json({ message: "Logged out" });
   };
 }
+
+const addBotFirend = async (user: User) => {
+  const bot = await prisma.user.findFirst({
+    where: { username: "FriendBot", code: 111111 },
+  });
+
+  if (bot) {
+    await prisma.friend.create({
+      data: {
+        userId: user.id,
+        friendId: bot?.id,
+        status: "ACCEPTED",
+      },
+    });
+  }
+};
 
 export default AuthController;

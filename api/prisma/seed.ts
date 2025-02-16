@@ -78,20 +78,69 @@ const team = [
 async function main() {
   console.log("Seeding database...");
 
-  const [passwordHash, passwordSalt] = hashPassword("123456");
-  await prisma.user.create({
+  const [passwordHash, passwordSalt] = hashPassword(
+    Math.floor(100000 + Math.random() * 900000).toString()
+  );
+
+  const bot = await prisma.user.create({
     data: {
-      email: "test@test.com",
-      username: "Hulcox",
+      email: "bot@bot.bot",
+      username: "FriendBot",
       passwordHash: passwordHash,
       passwordSalt: passwordSalt,
       code: 111111,
     },
   });
 
+  await prisma.team.create({
+    data: {
+      userId: bot.id,
+      name: faker.word.noun(),
+      pokemons: team,
+      totalHp: faker.number.int({ min: 100, max: 500 }),
+    },
+  });
+
+  await prisma.hack.createMany({
+    data: [
+      {
+        code: "F3Z4D2",
+        type: "Hexadécimal",
+        difficulty: "Facile",
+        solution: "FEED",
+      },
+      {
+        code: "GRX-7TH9",
+        type: "Substitution",
+        difficulty: "Moyenne",
+        solution: "PAUSE",
+      },
+      {
+        code: "a1b2c3",
+        type: "Alphanumérique",
+        difficulty: "Moyenne",
+        solution: "CATCH",
+      },
+      {
+        code: "P@ss1234",
+        type: "Chiffres",
+        difficulty: "Difficile",
+        solution: "OPEN",
+      },
+      {
+        code: "tEmP-100",
+        type: "Base 64",
+        difficulty: "Très Difficile",
+        solution: "DEFEND",
+      },
+    ],
+  });
+
   const users = [];
   for (let i = 0; i < 10; i++) {
-    const [passwordHash, passwordSalt] = hashPassword("test123");
+    const [passwordHash, passwordSalt] = hashPassword(
+      Math.floor(100000 + Math.random() * 900000).toString()
+    );
     const user = await prisma.user.create({
       data: {
         email: faker.internet.email(),

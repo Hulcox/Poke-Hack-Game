@@ -89,3 +89,11 @@ model Battle {
   attackerTeam Team @relation("AttackerTeamBattle", fields: [attackerTeamId], references: [id])
   defenderTeam Team @relation("DefenderTeamBattle", fields: [defenderTeamId], references: [id])
 }
+
+model Hack {
+  id Int @id @default(autoincrement())
+  code String
+  type String
+  difficulty String
+  solution String
+}
