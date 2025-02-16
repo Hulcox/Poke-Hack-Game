@@ -3,13 +3,20 @@ import type { InputJsonValue } from "@prisma/client/runtime/client.js";
 import type { Context } from "hono";
 import {
   calculateAttack,
-  deleteBattle,
+  calculateHackProbability,
+  checkWin,
   getBattle,
-  isTeamDefeated,
+  getRandomHack,
+  lostPokemons,
   saveBattle,
   updateTeamsAfterMove,
 } from "../services/battle.service.js";
-import type { Move, MoveBattle, StartBattle } from "../types/battle.types.js";
+import type {
+  Move,
+  MoveBattle,
+  MoveHack,
+  StartBattle,
+} from "../types/battle.types.js";
 import type { Pokemon } from "../types/team.types.js";
 import {
   ERROR_INVALID_REQUEST_BODY,
@@ -131,6 +138,18 @@ export class BattleController {
       );
     }
 
+    const hackChance = calculateHackProbability(weakType, [
+      ...battleCache.attackerTeam,
+      ...battleCache.defenderTeam,
+    ]);
+
+    const isHacked = Math.random() * 100 < hackChance;
+
+    if (isHacked && by == "ATTACKER") {
+      const hack = await getRandomHack();
+      return c.json({ hack: hack });
+    }
+
     const [attackValue, attackEfficacy] = calculateAttack(
       strengthType,
       weakType,
@@ -150,25 +169,7 @@ export class BattleController {
 
     await saveBattle(id, updatedTeams);
 
-    if (
-      isTeamDefeated(updatedTeams.attackerTeam) ||
-      isTeamDefeated(updatedTeams.defenderTeam)
-    ) {
-      const winner = isTeamDefeated(updatedTeams.attackerTeam)
-        ? "DEFENDER"
-        : "ATTACKER";
-
-      await prisma.battle.update({
-        where: { id },
-        data: { status: winner == "ATTACKER" ? "WIN" : "LOOSE" },
-      });
-
-      await deleteBattle(id);
-
-      return c.json({
-        winner: winner,
-      });
-    }
+    await checkWin(c, updatedTeams, id);
 
     return c.json({
       ...updatedBattle,
@@ -223,8 +224,68 @@ export class BattleController {
       ...savedData,
     });
   }
+
+  static async hackBattle(c: Context) {
+    const { id, type, to, hackDifficulty } = await c.req.json<MoveBattle>();
+
+    if (!id || !type || !to || !hackDifficulty) {
+      return c.json(
+        { error: ERROR_INVALID_REQUEST_BODY },
+        STATUS_CODE_BAD_REQUEST
+      );
+    }
+
+    const battleCache = await getBattle(id);
+    if (!battleCache) {
+      return c.json(
+        { error: "Battle not found in cache" },
+        STATUS_CODE_NOT_FOUND
+      );
+    }
+
+    const isEasy = ["Facile", "Moyenne"].includes(hackDifficulty);
+    const move: MoveHack = {
+      type: "HACK",
+      difficulty: hackDifficulty,
+      lostPokemon: isEasy
+        ? Math.min(
+            Math.floor(Math.random() * 3) + 1,
+            battleCache.attackerTeam.length
+          )
+        : 0,
+      hpLost: isEasy ? 0 : hackDifficulty === "Difficile" ? 25 : 15,
+    };
+
+    const updatedAttackerTeam = isEasy
+      ? lostPokemons(battleCache.attackerTeam, move.lostPokemon, to)
+      : battleCache.attackerTeam.map((pokemon: Pokemon) => ({
+          ...pokemon,
+          hp:
+            pokemon.id == to.id ? Math.max(0, to.hp - move.hpLost) : pokemon.hp,
+        }));
+
+    const savedData = {
+      attackerTeam: updatedAttackerTeam,
+      defenderTeam: battleCache.defenderTeam,
+      activeAttackerPokemon: isEasy
+        ? battleCache.activeAttackerPokemon
+        : updatedAttackerTeam.find((p: Pokemon) => p.id == to.id),
+      activeDefenderPokemon: battleCache.activeDefenderPokemon,
+    };
+
+    await checkWin(c, savedData, id);
+
+    const battle = await updateBattle(id, move);
+    await saveBattle(id, savedData);
+
+    return c.json({
+      ...battle,
+      currentTurn: "DEFENDER",
+      ...savedData,
+    });
+  }
 }
-const updateBattle = async (id: number, move: Move) => {
+const updateBattle = async (id: number, move: Move | MoveHack) => {
   return await prisma.battle.update({
     where: { id },
     data: { movesHistory: { push: move as unknown as InputJsonValue[] } },

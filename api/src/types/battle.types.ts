@@ -19,6 +19,7 @@ export interface MoveBattle {
   to: Pokemon;
   strengthType: string[];
   weakType: string[];
+  hackDifficulty: string;
 }
 
 export interface Move {
@@ -27,6 +28,13 @@ export interface Move {
   from: number;
   to: number;
   value: number;
+}
+
+export interface MoveHack {
+  type: "HACK";
+  difficulty: string;
+  lostPokemon: number;
+  hpLost: number;
 }
 
 export interface Team {

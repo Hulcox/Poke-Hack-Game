@@ -1,4 +1,5 @@
 "use client";
+import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -18,27 +19,6 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
-const loginUser = async (data: Inputs) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      credentials: "include",
-    }
-  );
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.error);
-  }
-  return result;
-};
-
 const RegisterForm = () => {
   const router = useRouter();
 
@@ -49,7 +29,12 @@ const RegisterForm = () => {
   } = useForm<Inputs>({ resolver: zodResolver(schema) });
 
   const mutation = useMutation({
-    mutationFn: loginUser,
+    mutationFn: (data: Inputs) =>
+      api(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: "POST",
+        data: data,
+        credential: true,
+      }),
     onSuccess: () => {
       router.push("/auth/login");
     },

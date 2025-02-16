@@ -1,7 +1,10 @@
+import { PrismaClient } from "@prisma/client";
+import type { Context } from "hono";
 import { Redis } from "ioredis";
 import type { Battle, Move } from "../types/battle.types.js";
 import type { Pokemon } from "../types/team.types.js";
 
+const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 export const saveBattle = async (id: number, data: Battle) => {
@@ -80,4 +83,64 @@ export const calculateAttack = (
   }
 
   return [Math.floor(attackValue), attackEfficacy];
+};
+
+export const calculateHackProbability = (
+  weakTypes: string[],
+  teams: Pokemon[]
+) => {
+  let baseChance = 10;
+  let affectedPokemon = 0;
+
+  teams.forEach((team) => {
+    if (weakTypes.some((type) => team.types.includes(type))) {
+      affectedPokemon++;
+    }
+  });
+
+  return baseChance + affectedPokemon * 5;
+};
+
+export const getRandomHack = async () => {
+  const hacks = await prisma.hack.findMany();
+  return hacks[Math.floor(Math.random() * hacks.length)];
+};
+
+export const lostPokemons = (
+  team: Pokemon[],
+  lostCount: number,
+  activePokemon: Pokemon
+) => {
+  const pokemonsAffected = team
+    .filter((pokemon) => pokemon.id == activePokemon.id && pokemon.hp != 0)
+    .map((pokemon, index) => {
+      const isLost = index < lostCount;
+      return { ...pokemon, hp: isLost ? 0 : pokemon.hp };
+    });
+
+  return team.map((pokemon) => {
+    const pokemonAffected = pokemonsAffected.find(
+      (elm) => elm.id == pokemon.id
+    );
+    return pokemonAffected ? pokemonAffected : pokemon;
+  });
+};
+
+export const checkWin = async (c: Context, team: Battle, id: number) => {
+  if (isTeamDefeated(team.attackerTeam) || isTeamDefeated(team.defenderTeam)) {
+    const winner = isTeamDefeated(team.attackerTeam) ? "DEFENDER" : "ATTACKER";
+
+    await prisma.battle.update({
+      where: { id },
+      data: { status: winner == "ATTACKER" ? "WIN" : "LOOSE" },
+    });
+
+    await deleteBattle(id);
+
+    return c.json({
+      winner: winner,
+    });
+  } else {
+    return;
+  }
 };

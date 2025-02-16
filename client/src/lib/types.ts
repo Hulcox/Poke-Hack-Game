@@ -149,3 +149,10 @@ export interface Move {
   damage: number;
   timestamp: string;
 }
+
+export interface Hack {
+  id: number;
+  code: string;
+  type: string;
+  difficulty: string;
+}

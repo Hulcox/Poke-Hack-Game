@@ -1,5 +1,5 @@
 import { useAnimateDialog } from "@/hooks/useAnimation";
-import { Battle, PokemonFormSchema, Weather } from "@/lib/types";
+import { Battle, Hack, PokemonFormSchema, Weather } from "@/lib/types";
 import { api } from "@/utils/api";
 import { dialogTemplates } from "@/utils/dialog";
 import {
@@ -9,9 +9,10 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import WeatherBadge from "../weather/weatherBadge";
-import BattleEndMenu from "./battleEndMenu";
+import BattleEndMenu from "./fight/battleEndMenu";
 import FightBox from "./fight/fightBox";
 import FightFooter from "./fight/fightFooter";
+import HackMenu from "./fight/hackMenu";
 import PokemonMenu from "./fight/pokemonMenu";
 
 interface BattleComponentProps {
@@ -20,10 +21,11 @@ interface BattleComponentProps {
 }
 
 const pokemonModalId = "pokemonMenu";
-const battleEndId = "battleEnd";
+const battleEndId = "battleEndMenu";
+const hackMenu = "hackMeny";
 
 const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
-  const [state, setState] = useState({
+  const [battleState, setBattleState] = useState({
     currentTurn: "ATTACKER",
     attackerTeam: battle.attackerTeam,
     defenderTeam: battle.defenderTeam,
@@ -31,10 +33,11 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     activeDefenderPokemon: battle.activeDefenderPokemon,
   });
   const [winner, setWinner] = useState("");
+  const [hack, setHack] = useState<Hack | null>(null);
 
   const { dialog, animateDialog } = useAnimateDialog(
     dialogTemplates.attackerTurn(
-      state.activeAttackerPokemon.name,
+      battleState.activeAttackerPokemon.name,
       battle.attacker.username
     )
   );
@@ -45,17 +48,22 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
   const openBattleEndMenu = () => {
     (document.getElementById(battleEndId) as HTMLDialogElement)?.showModal();
   };
+  const openHackMenu = () => {
+    (document.getElementById(hackMenu) as HTMLDialogElement)?.showModal();
+  };
 
   const move = useMutation({
     mutationFn: ({
       by,
+      hackDifficulty,
       type,
       from,
       to,
     }: {
-      by: string;
+      by?: string;
+      hackDifficulty?: string;
       type: string;
-      from: PokemonFormSchema;
+      from?: PokemonFormSchema;
       to: PokemonFormSchema;
     }) =>
       api(`${process.env.NEXT_PUBLIC_API_URL}/battle/${type.toLowerCase()}`, {
@@ -68,6 +76,7 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
           to,
           strengthType: typeStrengthByWeather(weather),
           weakType: typeWeaknessesByWeather(weather),
+          hackDifficulty,
         },
         credential: true,
       }),
@@ -78,14 +87,20 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         return;
       }
 
+      if (data.hack) {
+        setHack(data.hack);
+        openHackMenu();
+        return;
+      }
+
       if (data.valueEfficaity) {
         await animateDialog(
-          state.currentTurn,
+          battleState.currentTurn,
           `The Attack is ${data.valueEfficaity}`
         );
       }
 
-      setState({
+      setBattleState({
         currentTurn: data.currentTurn,
         attackerTeam: data.attackerTeam,
         defenderTeam: data.defenderTeam,
@@ -136,6 +151,16 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
     });
   };
 
+  const onHack = (difficulty: string) => {
+    animateDialog("ATTACKER", dialogTemplates.hackNotResolve).then(() => {
+      move.mutate({
+        hackDifficulty: difficulty,
+        type: "HACK",
+        to: battleState.activeAttackerPokemon,
+      });
+    });
+  };
+
   const getNextPokemon = (
     team: PokemonFormSchema[],
     active: PokemonFormSchema
@@ -150,33 +175,36 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
       </div>
       <div className="h-3/4 flex p-8">
         <FightBox
-          pokemon={state.activeAttackerPokemon}
+          pokemon={battleState.activeAttackerPokemon}
           isAttacker
-          isAttackerTurn={state.currentTurn === "ATTACKER"}
+          isAttackerTurn={battleState.currentTurn === "ATTACKER"}
           onAttack={() =>
             attackFn(
               "DEFENDER",
-              state.activeDefenderPokemon,
-              state.activeAttackerPokemon
+              battleState.activeDefenderPokemon,
+              battleState.activeAttackerPokemon
             )
           }
           openPokemonMenu={openPokemonMenu}
         />
         <FightBox
-          pokemon={state.activeDefenderPokemon}
+          pokemon={battleState.activeDefenderPokemon}
           onAttack={() =>
             attackFn(
               "DEFENDER",
-              state.activeDefenderPokemon,
-              state.activeAttackerPokemon
+              battleState.activeDefenderPokemon,
+              battleState.activeAttackerPokemon
             )
           }
-          isAttackerTurn={state.currentTurn === "ATTACKER"}
+          isAttackerTurn={battleState.currentTurn === "ATTACKER"}
           onSwitch={() =>
             switchFn(
               "DEFENDER",
-              state.activeDefenderPokemon,
-              getNextPokemon(state.defenderTeam, state.activeDefenderPokemon)
+              battleState.activeDefenderPokemon,
+              getNextPokemon(
+                battleState.defenderTeam,
+                battleState.activeDefenderPokemon
+              )
             )
           }
           openPokemonMenu={openPokemonMenu}
@@ -186,21 +214,22 @@ const BattleComponent = ({ battle, weather }: BattleComponentProps) => {
         onAttack={() =>
           attackFn(
             "ATTACKER",
-            state.activeAttackerPokemon,
-            state.activeDefenderPokemon
+            battleState.activeAttackerPokemon,
+            battleState.activeDefenderPokemon
           )
         }
         dialog={dialog}
         openPokemonMenu={openPokemonMenu}
-        currentTrun={state.currentTurn === "ATTACKER"}
+        currentTrun={battleState.currentTurn === "ATTACKER"}
       />
       <PokemonMenu
         id={pokemonModalId}
-        pokemons={state.attackerTeam}
-        activePokemon={state.activeAttackerPokemon}
+        pokemons={battleState.attackerTeam}
+        activePokemon={battleState.activeAttackerPokemon}
         onSwitch={switchFn}
       />
       <BattleEndMenu id={battleEndId} win={winner === "ATTACKER"} />
+      <HackMenu id={hackMenu} hack={hack} onHack={onHack} />
     </div>
   );
 };

@@ -11,5 +11,6 @@ battleRouter.get("/:id", BattleController.getBattle);
 battleRouter.post("/start", BattleController.startBattle);
 battleRouter.post("/attack", BattleController.attackBattle);
 battleRouter.post("/switch", BattleController.switchBattle);
+battleRouter.post("/hack", BattleController.hackBattle);
 
 export default battleRouter;

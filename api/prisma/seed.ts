@@ -97,7 +97,7 @@ async function main() {
       userId: bot.id,
       name: faker.word.noun(),
       pokemons: team,
-      totalHp: faker.number.int({ min: 100, max: 500 }),
+      totalHp: 360,
     },
   });
 
@@ -159,7 +159,7 @@ async function main() {
         userId: user.id,
         name: faker.word.noun(),
         pokemons: team,
-        totalHp: faker.number.int({ min: 100, max: 500 }),
+        totalHp: 360,
       },
     });
   }

@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import Modal from "../modal";
+import Modal from "../../modal";
 
 interface BattleEndMenuProps {
   win: boolean;
