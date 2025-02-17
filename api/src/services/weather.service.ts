@@ -1,7 +1,5 @@
-import { Redis } from "ioredis";
 import type { WeatherData } from "../types/weather.types.js";
-
-const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+import { redis } from "./redis.service.js";
 
 export const saveWeather = async (
   lat: string,

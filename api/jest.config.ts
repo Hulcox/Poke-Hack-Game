@@ -6,4 +6,6 @@ export default {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
+  setupFiles: ["./setupTests.ts"],
+  testEnvironment: "node",
 };

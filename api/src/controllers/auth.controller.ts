@@ -2,14 +2,17 @@ import { PrismaClient, type User } from "@prisma/client";
 import type { Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
-import { deleteSession, saveSession } from "../services/redis.service.js";
-import type { CreateUser, SignInUser } from "../types/user.types.js";
+import { deleteSession, saveSession } from "../services/session.service.js";
+import type { LoginUser, RegisterUser } from "../types/user.types.js";
 import {
   ERROR_INTERNAL_SERVER,
+  ERROR_INVALID_REQUEST_BODY,
   STATUS_CODE_BAD_REQUEST,
+  STATUS_CODE_FORBIDDEN,
   STATUS_CODE_INTERNAL_SERVER_ERROR,
 } from "../utils/constants.js";
 import { hashPassword } from "../utils/hashPassword.js";
+import { loginSchema, registerSchema } from "../utils/schema.js";
 
 const SECRET_KEY = process.env.JWT_SECRET || "";
 const SESSION_EXPIRY = 3600 * 24; //24h
@@ -18,14 +21,23 @@ const prisma = new PrismaClient();
 export class AuthController {
   static login = async (c: Context) => {
     try {
-      const { email, password } = await c.req.json<SignInUser>();
+      const { email, password } = await c.req.json<LoginUser>();
+
+      const validate = loginSchema.safeParse({ email, password });
+
+      if (!validate.success) {
+        return c.json(ERROR_INVALID_REQUEST_BODY, STATUS_CODE_BAD_REQUEST);
+      }
 
       const user = await prisma.user.findFirst({ where: { email: email } });
 
       const [passwordHash] = hashPassword(password, user?.passwordSalt);
 
       if (user?.passwordHash !== passwordHash) {
-        return c.json({ error: "Email or Password is invalid" }, 403);
+        return c.json(
+          { error: "Email or Password is invalid" },
+          STATUS_CODE_FORBIDDEN
+        );
       }
 
       const sessionId = crypto.randomUUID();
@@ -59,12 +71,13 @@ export class AuthController {
   };
 
   static register = async (c: Context) => {
-    console.log("HELLO");
     try {
-      const { username, email, password } = await c.req.json<CreateUser>();
+      const { username, email, password } = await c.req.json<RegisterUser>();
 
-      if (!username || !email || !password) {
-        return c.json({ error: "Data missing" }, STATUS_CODE_BAD_REQUEST);
+      const validate = registerSchema.safeParse({ username, email, password });
+
+      if (!validate.success) {
+        return c.json(ERROR_INVALID_REQUEST_BODY, STATUS_CODE_BAD_REQUEST);
       }
 
       const [passwordHash, passwordSalt] = hashPassword(password);

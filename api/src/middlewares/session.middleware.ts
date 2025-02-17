@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { getSession } from "../services/redis.service.js";
+import { getSession } from "../services/session.service.js";
 
 export const sessionMiddleware: MiddlewareHandler = async (c, next) => {
   const payload = c.get("jwtPayload");

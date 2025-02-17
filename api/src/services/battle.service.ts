@@ -1,10 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { Redis } from "ioredis";
 import type { Battle, Move } from "../types/battle.types.js";
 import type { Pokemon } from "../types/team.types.js";
+import { redis } from "./redis.service.js";
 
 const prisma = new PrismaClient();
-const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 export const saveBattle = async (id: number, data: Battle) => {
   await redis.set(`battle:${id}`, JSON.stringify(data));
