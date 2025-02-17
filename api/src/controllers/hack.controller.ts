@@ -27,7 +27,7 @@ export class HackController {
         );
       }
 
-      if (hack.solution === solution) {
+      if (hack.solution === solution.toUpperCase()) {
         return c.json(
           { success: true, message: "Hack resolve" },
           STATUS_CODE_OK

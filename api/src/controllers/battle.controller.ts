@@ -261,12 +261,6 @@ export class BattleController {
       hpLost: isEasy ? 0 : hackDifficulty === "Difficile" ? 25 : 15,
     };
 
-    console.log(
-      move,
-      isEasy,
-      lostPokemons(battleCache.attackerTeam, move.lostPokemon, to)
-    );
-
     const updatedAttackerTeam = isEasy
       ? lostPokemons(battleCache.attackerTeam, move.lostPokemon, to)
       : battleCache.attackerTeam.map((pokemon: Pokemon) => ({

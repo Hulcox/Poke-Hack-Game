@@ -3,9 +3,12 @@ import type { Context } from "hono";
 import type { CreateTeam, UpdateTeam } from "../types/team.types.js";
 import {
   ERROR_INTERNAL_SERVER,
+  ERROR_INVALID_REQUEST_BODY,
+  STATUS_CODE_BAD_REQUEST,
   STATUS_CODE_INTERNAL_SERVER_ERROR,
   STATUS_CODE_NOT_FOUND,
 } from "../utils/constants.js";
+import { teamSchema } from "../utils/schema.js";
 
 const prisma = new PrismaClient();
 
@@ -57,6 +60,13 @@ export class TeamController {
     const user = c.get("user");
     try {
       const { name, team } = await c.req.json<CreateTeam>();
+
+      const validate = teamSchema.safeParse({ name, team });
+
+      if (!validate.success) {
+        return c.json(ERROR_INVALID_REQUEST_BODY, STATUS_CODE_BAD_REQUEST);
+      }
+
       //TODO put team in fav
       const createdTeam = await prisma.team.create({
         data: {
@@ -85,6 +95,12 @@ export class TeamController {
     const id = c.req.param("id");
     try {
       const { name, team } = await c.req.json<UpdateTeam>();
+
+      const validate = teamSchema.safeParse({ name, team });
+
+      if (!validate.success) {
+        return c.json(ERROR_INVALID_REQUEST_BODY, STATUS_CODE_BAD_REQUEST);
+      }
 
       const updateTeam = await prisma.team.update({
         data: {

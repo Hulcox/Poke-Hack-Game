@@ -4,7 +4,7 @@ import { pbkdf2Sync, randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
 
-export const hashPassword = (
+const hashPassword = (
   password: string,
   salt = randomBytes(1000).toString("hex")
 ): [salt: string, hash: string] => {
@@ -15,6 +15,7 @@ export const hashPassword = (
 const team = [
   {
     hp: 45,
+    hp_base: 45,
     id: 1,
     img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
     name: "bulbasaur",
@@ -25,6 +26,7 @@ const team = [
   },
   {
     hp: 60,
+    hp_base: 60,
     id: 2,
     img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png",
     name: "ivysaur",
@@ -35,6 +37,7 @@ const team = [
   },
   {
     hp: 80,
+    hp_base: 80,
     id: 3,
     img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png",
     name: "venusaur",
@@ -45,6 +48,7 @@ const team = [
   },
   {
     hp: 39,
+    hp_base: 39,
     id: 4,
     img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
     name: "charmander",
@@ -55,6 +59,7 @@ const team = [
   },
   {
     hp: 58,
+    hp_base: 58,
     id: 5,
     img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/5.png",
     name: "charmeleon",
@@ -65,6 +70,7 @@ const team = [
   },
   {
     hp: 78,
+    hp_base: 78,
     id: 6,
     img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png",
     name: "charizard",

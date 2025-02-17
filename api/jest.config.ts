@@ -8,4 +8,5 @@ export default {
   },
   setupFiles: ["./setupTests.ts"],
   testEnvironment: "node",
+  testMatch: ["**/*.test.ts"],
 };
