@@ -24,11 +24,8 @@ export class WeatherController {
         );
       }
 
-      console.log(lat, lon);
-
       const cacheWeather = await getWeather(lat, lon);
       if (cacheWeather) {
-        console.log("Météo chargée depuis Redis");
         return c.json(cacheWeather);
       }
 
@@ -42,7 +39,6 @@ export class WeatherController {
       const weatherData = await response.json();
       await saveWeather(lat, lon, weatherData, CACHE_EXPIRY);
 
-      console.log("Météo récupérer par OpenWeather");
       return c.json(weatherData);
     } catch (error) {
       console.log("Error :", error);

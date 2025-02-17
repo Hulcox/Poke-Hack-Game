@@ -56,8 +56,6 @@ export class UserController {
       omit: { passwordHash: true, passwordSalt: true },
     });
 
-    console.log(user);
-
     if (!user || user.length == 0) {
       return c.json({ error: "No user found" }, STATUS_CODE_NOT_FOUND);
     }

@@ -246,7 +246,7 @@ export class BattleController {
       );
     }
 
-    const isEasy = ["Facile", "Moyenne"].includes(hackDifficulty);
+    const isEasy = ["Easy", "Medium"].includes(hackDifficulty);
     const move: MoveHack = {
       type: "HACK",
       difficulty: hackDifficulty,
@@ -256,7 +256,7 @@ export class BattleController {
             battleCache.attackerTeam.length
           )
         : 0,
-      hpLost: isEasy ? 0 : hackDifficulty === "Difficile" ? 25 : 15,
+      hpLost: isEasy ? 0 : hackDifficulty === "Hard" ? 25 : 15,
     };
 
     const updatedAttackerTeam = isEasy
