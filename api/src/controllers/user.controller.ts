@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
+import { prisma } from "../../prisma/prisma.js";
 import { STATUS_CODE_NOT_FOUND } from "../utils/constants.js";
-
-const prisma = new PrismaClient();
 
 export class UserController {
   static getAllUsers = async (c: Context) => {

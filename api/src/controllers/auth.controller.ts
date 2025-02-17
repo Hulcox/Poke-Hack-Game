@@ -1,7 +1,8 @@
-import { PrismaClient, type User } from "@prisma/client";
+import { type User } from "@prisma/client";
 import type { Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
+import { prisma } from "../../prisma/prisma.js";
 import { deleteSession, saveSession } from "../services/session.service.js";
 import type { LoginUser, RegisterUser } from "../types/user.types.js";
 import {
@@ -17,7 +18,6 @@ import { loginSchema, registerSchema } from "../utils/schema.js";
 const SECRET_KEY = process.env.JWT_SECRET || "";
 const SESSION_EXPIRY = 3600 * 24; //24h
 
-const prisma = new PrismaClient();
 export class AuthController {
   static login = async (c: Context) => {
     try {

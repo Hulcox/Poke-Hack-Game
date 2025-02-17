@@ -35,3 +35,7 @@ export const teamSchema = z.object({
     .max(6, "You can only have up to 6 Pokémons")
     .min(6, "6 pokémons is required in your team"),
 });
+
+export const friendSchema = z.object({
+  friendId: z.number().gt(0),
+});

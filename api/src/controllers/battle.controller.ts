@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import type { InputJsonValue } from "@prisma/client/runtime/client.js";
 import type { Context } from "hono";
+import { prisma } from "../../prisma/prisma.js";
 import {
   calculateAttack,
   calculateHackProbability,
@@ -24,8 +24,6 @@ import {
   STATUS_CODE_INTERNAL_SERVER_ERROR,
   STATUS_CODE_NOT_FOUND,
 } from "../utils/constants.js";
-
-const prisma = new PrismaClient();
 
 export class BattleController {
   static async getBattle(c: Context) {

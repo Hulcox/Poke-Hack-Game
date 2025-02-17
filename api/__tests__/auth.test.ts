@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import request from "supertest";
+import { prisma } from "../prisma/prisma.js";
 import server from "../src/index.js";
 import { redis } from "../src/services/redis.service.js";
-
-const prisma = new PrismaClient();
 
 beforeAll(async () => {
   try {
@@ -17,7 +15,6 @@ beforeAll(async () => {
 
 afterAll(async () => {
   try {
-    await prisma.$disconnect();
     server.close();
     redis.quit();
   } catch (error) {

@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
+import { prisma } from "../../prisma/prisma.js";
 import type { CreateTeam, UpdateTeam } from "../types/team.types.js";
 import {
   ERROR_INTERNAL_SERVER,
@@ -9,8 +9,6 @@ import {
   STATUS_CODE_NOT_FOUND,
 } from "../utils/constants.js";
 import { teamSchema } from "../utils/schema.js";
-
-const prisma = new PrismaClient();
 
 export class TeamController {
   static getAllTeam = async (c: Context) => {

@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
+import { prisma } from "../../prisma/prisma.js";
 import type { verifyHack } from "../types/hack.types.js";
 import {
   ERROR_INTERNAL_SERVER,
@@ -8,8 +8,6 @@ import {
   STATUS_CODE_INTERNAL_SERVER_ERROR,
   STATUS_CODE_OK,
 } from "../utils/constants.js";
-
-const prisma = new PrismaClient();
 
 export class HackController {
   static async verifyHack(c: Context) {

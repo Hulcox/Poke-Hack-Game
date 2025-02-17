@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
+import { prisma } from "../../prisma/prisma.js";
 import {
   ERROR_INTERNAL_SERVER,
   ERROR_INVALID_REQUEST,
@@ -7,8 +7,6 @@ import {
   STATUS_CODE_NOT_FOUND,
   STATUS_CODE_OK,
 } from "../utils/constants.js";
-
-const prisma = new PrismaClient();
 
 export class HistoryController {
   static async getHistory(c: Context) {

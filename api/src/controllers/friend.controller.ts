@@ -1,14 +1,14 @@
-import { PrismaClient } from "@prisma/client";
 import type { Context } from "hono";
+import { prisma } from "../../prisma/prisma.js";
 import { type AddFriend, type UpdateFriend } from "../types/friend.types.js";
 import {
   ERROR_INTERNAL_SERVER,
+  ERROR_INVALID_REQUEST_BODY,
   STATUS_CODE_BAD_REQUEST,
   STATUS_CODE_INTERNAL_SERVER_ERROR,
   STATUS_CODE_NOT_FOUND,
 } from "../utils/constants.js";
-
-const prisma = new PrismaClient();
+import { friendSchema } from "../utils/schema.js";
 
 export class FriendController {
   static getAllFriends = async (c: Context) => {
@@ -93,6 +93,12 @@ export class FriendController {
     try {
       const { friendId } = await c.req.json<AddFriend>();
 
+      const validate = friendSchema.safeParse({ friendId });
+
+      if (!validate.success) {
+        return c.json(ERROR_INVALID_REQUEST_BODY, STATUS_CODE_BAD_REQUEST);
+      }
+
       const isExist = await prisma.friend.findFirst({
         where: {
           OR: [
@@ -128,6 +134,12 @@ export class FriendController {
   static acceptFriend = async (c: Context) => {
     try {
       const { friendLinkid } = await c.req.json<UpdateFriend>();
+
+      const validate = friendSchema.safeParse({ friendId: friendLinkid });
+
+      if (!validate.success) {
+        return c.json(ERROR_INVALID_REQUEST_BODY, STATUS_CODE_BAD_REQUEST);
+      }
 
       const friend = await prisma.friend.update({
         data: {

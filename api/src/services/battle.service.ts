@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma/prisma.js";
 import type { Battle, Move } from "../types/battle.types.js";
 import type { Pokemon } from "../types/team.types.js";
 import { redis } from "./redis.service.js";
-
-const prisma = new PrismaClient();
 
 export const saveBattle = async (id: number, data: Battle) => {
   await redis.set(`battle:${id}`, JSON.stringify(data));
