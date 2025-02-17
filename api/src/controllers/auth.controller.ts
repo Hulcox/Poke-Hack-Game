@@ -6,6 +6,7 @@ import { deleteSession, saveSession } from "../services/redis.service.js";
 import type { CreateUser, SignInUser } from "../types/user.types.js";
 import {
   ERROR_INTERNAL_SERVER,
+  STATUS_CODE_BAD_REQUEST,
   STATUS_CODE_INTERNAL_SERVER_ERROR,
 } from "../utils/constants.js";
 import { hashPassword } from "../utils/hashPassword.js";
@@ -58,11 +59,12 @@ export class AuthController {
   };
 
   static register = async (c: Context) => {
+    console.log("HELLO");
     try {
       const { username, email, password } = await c.req.json<CreateUser>();
 
       if (!username || !email || !password) {
-        return c.json({ error: "Data missing" }, 400);
+        return c.json({ error: "Data missing" }, STATUS_CODE_BAD_REQUEST);
       }
 
       const [passwordHash, passwordSalt] = hashPassword(password);

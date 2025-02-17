@@ -39,7 +39,9 @@ app.onError((err, c) => {
 const port = 3030;
 console.log(`Server is running on ${process.env.API_URL}:${port}`);
 
-serve({
+const server = serve({
   fetch: app.fetch,
   port,
 });
+
+export default server;
