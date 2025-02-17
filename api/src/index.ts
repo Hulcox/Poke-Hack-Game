@@ -32,7 +32,7 @@ app.route("/api/hack", hackRouter);
 app.route("/api/history", historyRouter);
 
 app.onError((err, c) => {
-  console.log("Erreur", err);
+  console.log("Error", err);
   return c.json({ error: "Error survey" }, 500);
 });
 

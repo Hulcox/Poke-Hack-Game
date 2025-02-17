@@ -14,11 +14,11 @@ beforeAll(async () => {
     await prisma.friend.deleteMany();
 
     //create user for test friend
-    const [token, userList] = await createUserForTest(2);
-    userToken = token;
-    friendUser = userList[0];
+    const users = await createUserForTest(2);
+    userToken = users[0].token;
+    friendUser = users[1].user;
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("Error:", error);
     throw error;
   }
 });
@@ -28,7 +28,7 @@ afterAll(async () => {
     server.close();
     redis.quit();
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("Error:", error);
   }
 });
 

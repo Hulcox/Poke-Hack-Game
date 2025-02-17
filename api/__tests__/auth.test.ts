@@ -8,7 +8,7 @@ beforeAll(async () => {
     await prisma.battle.deleteMany();
     await prisma.user.deleteMany();
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("Error:", error);
     throw error;
   }
 });
@@ -18,7 +18,7 @@ afterAll(async () => {
     server.close();
     redis.quit();
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("Error:", error);
   }
 });
 

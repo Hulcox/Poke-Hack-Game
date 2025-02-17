@@ -8,10 +8,10 @@ let userToken = "";
 beforeAll(async () => {
   try {
     //create user for test weather
-    const [token] = await createUserForTest();
-    userToken = token;
+    const users = await createUserForTest();
+    userToken = users[0].token;
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("Error:", error);
     throw error;
   }
 });
@@ -21,7 +21,7 @@ afterAll(async () => {
     server.close();
     redis.quit();
   } catch (error) {
-    console.error("Erreur:", error);
+    console.error("Error:", error);
   }
 });
 

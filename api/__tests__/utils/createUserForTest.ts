@@ -9,7 +9,7 @@ const SESSION_EXPIRY = 60 * 10;
 export const createUserForTest = async (numberOfuser: number = 1) => {
   await prisma.user.deleteMany();
 
-  let userList = [] as User[];
+  let userList = [] as { token: string; user: User }[];
 
   for (let i = 0; i < numberOfuser; i++) {
     const user = await prisma.user.create({
@@ -22,25 +22,22 @@ export const createUserForTest = async (numberOfuser: number = 1) => {
       },
     });
 
-    userList.push(user);
+    const sessionId = crypto.randomUUID();
+    await saveSession(
+      sessionId,
+      { userId: user.id, email: user.email },
+      SESSION_EXPIRY
+    );
+
+    //generate token team
+    const token = await sign(
+      { sessionId, exp: Math.floor(Date.now() / 1000) + 60 * 10 },
+      SECRET_KEY,
+      "HS256"
+    );
+
+    userList.push({ token: token, user: user });
   }
 
-  //generate session team
-  const sessionId = crypto.randomUUID();
-  await saveSession(
-    sessionId,
-    { userId: userList[0].id, email: userList[0].email },
-    SESSION_EXPIRY
-  );
-
-  //generate token team
-  const token = await sign(
-    { sessionId, exp: Math.floor(Date.now() / 1000) + 60 * 10 },
-    SECRET_KEY,
-    "HS256"
-  );
-
-  userList.shift();
-
-  return [token, userList] as [string, User[]];
+  return userList;
 };
